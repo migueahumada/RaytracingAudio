@@ -56,8 +56,10 @@ struct WAVE_HEADER
 template<typename SampleType>
 struct AudioBuffer {
   AudioBuffer() = default;
-  explicit AudioBuffer(size_t numSamples, size_t numChannels) :
-    : numSamples(m_numSamples), numChannels(m_numChannels)
+  explicit AudioBuffer(size_t numSamples, 
+                       size_t numChannels) :
+    : numSamples(m_numSamples), 
+      numChannels(m_numChannels)
   {
     m_buffer = new SampleType[m_numSamples];
   }
@@ -76,6 +78,7 @@ struct AudioBuffer {
   SampleType* m_buffer = nullptr;
 };
 
+
 class Audio
 {
  public:
@@ -90,6 +93,10 @@ class Audio
     }
   }
 
+  void create(uint32 sampleRate,
+              uint16 bitDepth,
+              uint16 numChannels,
+              uint32 audioDataSize);
   void decode(const String& filePath);
   void encode(const String& filePath);
 
@@ -100,15 +107,19 @@ class Audio
 
 private:
 
-  void readRiffChunk(std::fstream& file, WAVE_HEADER& waveHeader);
-  void readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader);
+  void readRiffChunk(std::fstream& file, 
+                     WAVE_HEADER& waveHeader);
+  void readSubchunks(std::fstream& file, 
+                     WAVE_HEADER& waveHeader);
 
-  uint16 m_numChannels = 0;
-  uint32 m_sampleRate = 0;
-  uint16 m_bitsPerSample = 0;
-  uint32 m_dataBytes = 0;
   
+  uint32 m_sampleRate = 0;
+  uint32 m_dataSize = 0;
   uint8* m_data = nullptr;
+  uint16 m_bitsPerSample = 0;
+  uint16 m_numChannels = 0;
+  
+  
 };
 
 /*

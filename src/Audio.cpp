@@ -1,5 +1,26 @@
 #include "Audio.h"
 
+void Audio::create(uint32 sampleRate, uint16 bitDepth, uint16 numChannels, uint32 audioDataSize)
+{
+
+  m_sampleRate = sampleRate;
+  m_bitsPerSample = bitDepth;
+  m_numChannels = numChannels;
+  m_dataSize = audioDataSize;
+
+  switch (m_bitsPerSample)
+  {
+  case 8:
+    break;
+  case 16:
+    break;
+  case 32:
+    break;
+  default:
+    break;
+  }
+}
+
 void Audio::decode(const String& filePath)
 {
   std::fstream file(filePath, std::ios::binary | std::ios::in);
@@ -14,6 +35,11 @@ void Audio::decode(const String& filePath)
   readRiffChunk(file, waveHeader);
 
   readSubchunks(file, waveHeader);
+
+  create(waveHeader.fmt.sampleRate,
+         waveHeader.fmt.bitsPerSample,
+         waveHeader.fmt.numChannels,
+         waveHeader.data.subchunk2Size);
 
   file.close();
 
@@ -32,11 +58,11 @@ void Audio::encode(const String& filePath)
 
   WAVE_HEADER waveHeader{0};
   waveHeader.riff.chunkID = fourccRIFF;
-  waveHeader.riff.chunkSize = sizeof(WAVE_HEADER) - 8 + m_dataBytes;
+  waveHeader.riff.chunkSize = sizeof(WAVE_HEADER) - 8 + m_dataSize;
   waveHeader.riff.format = fourccWAVE;
 
   waveHeader.fmt.subchunk1ID = fourccFMT;
-  waveHeader.fmt.subchunk1Size = 16;
+  waveHeader.fmt.subchunk1Size = sizeof(FMT_SUBCHUNK) - 8;
   waveHeader.fmt.audioFormat = 1;
   waveHeader.fmt.numChannels = m_numChannels;
   waveHeader.fmt.sampleRate = m_sampleRate;
@@ -45,11 +71,11 @@ void Audio::encode(const String& filePath)
   waveHeader.fmt.bitsPerSample = m_bitsPerSample;
 
   waveHeader.data.subchunk2ID = fourccDATA;
-  waveHeader.data.subchunk2Size = m_dataBytes;
+  waveHeader.data.subchunk2Size = m_dataSize;
 
   file.write(reinterpret_cast<char*>(&waveHeader), sizeof(waveHeader));
 
-  file.write(reinterpret_cast<char*>(&*m_data),m_dataBytes);
+  file.write(reinterpret_cast<char*>(&*m_data), m_dataSize);
 
   file.close();
 
@@ -102,10 +128,6 @@ void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
       file.seekg(-static_cast<std::streamoff>(sizeof(tempBuffer)), std::ios::cur);
 
       file.read(reinterpret_cast<char*>(&waveHeader.fmt), sizeof(waveHeader.fmt));
-      
-      m_numChannels = waveHeader.fmt.numChannels;
-      m_sampleRate = waveHeader.fmt.sampleRate;
-      m_bitsPerSample = waveHeader.fmt.bitsPerSample;
 
       break;
 
@@ -117,16 +139,15 @@ void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
 
       m_data = new uint8[waveHeader.data.subchunk2Size];
 
-      m_dataBytes = waveHeader.data.subchunk2Size;
-
       file.read(reinterpret_cast<char*>(&*m_data), waveHeader.data.subchunk2Size);
+      
 
       break;
 
     default:
       file.read(reinterpret_cast<char*>(&tempBuffer), sizeof(tempBuffer));
 
-      file.seekg(tempBuffer, std::ios::cur);
+      file.seekg(static_cast<std::streamoff>(tempBuffer), std::ios::cur);
       break;
     }
   }
