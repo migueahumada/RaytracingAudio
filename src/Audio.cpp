@@ -1,6 +1,11 @@
 #include "Audio.h"
+#include <assert.h>
+#include <limits>
 
-void Audio::create(uint32 sampleRate, uint16 bitDepth, uint16 numChannels, uint32 audioDataSize)
+void Audio::create(uint32 sampleRate, 
+                   uint16 bitDepth, 
+                   uint16 numChannels, 
+                   uint32 audioDataSize)
 {
 
   m_sampleRate = sampleRate;
@@ -8,17 +13,10 @@ void Audio::create(uint32 sampleRate, uint16 bitDepth, uint16 numChannels, uint3
   m_numChannels = numChannels;
   m_dataSize = audioDataSize;
 
-  switch (m_bitsPerSample)
-  {
-  case 8:
-    break;
-  case 16:
-    break;
-  case 32:
-    break;
-  default:
-    break;
-  }
+  
+  createAudioSamples(bitDepth,sampleRate,numChannels);
+  
+
 }
 
 void Audio::decode(const String& filePath)
@@ -66,8 +64,8 @@ void Audio::encode(const String& filePath)
   waveHeader.fmt.audioFormat = 1;
   waveHeader.fmt.numChannels = m_numChannels;
   waveHeader.fmt.sampleRate = m_sampleRate;
-  waveHeader.fmt.byteRate = m_sampleRate * m_numChannels * BytesPerSample();
-  waveHeader.fmt.blockAlign = m_numChannels * BytesPerSample();
+  waveHeader.fmt.byteRate = m_sampleRate * m_numChannels * getBytesPerSample();
+  waveHeader.fmt.blockAlign = m_numChannels * getBytesPerSample();
   waveHeader.fmt.bitsPerSample = m_bitsPerSample;
 
   waveHeader.data.subchunk2ID = fourccDATA;
@@ -80,6 +78,48 @@ void Audio::encode(const String& filePath)
   file.close();
 
   printf("Succesfully encoded an audio file.\n");
+}
+
+// Esto es usar memoria multidimensional para hacerla lineal
+// https://www.geeksforgeeks.org/c/how-does-c-allocate-memory-of-data-items-in-a-multidimensional-array/
+float Audio::getFrameSample(int channelIndex, int frameIndex)
+{
+  assert(channelIndex < m_numChannels &&
+         "Channel should not be greater than the number of channels");
+  assert(channelIndex >= 0 && "Channel should not be less than 0");
+
+  int frameOffset = (frameIndex * m_numChannels) + channelIndex;
+  
+  int byteOffset = frameOffset * getBytesPerSample();
+  
+  if (m_bitsPerSample == 8)
+  {
+    int8 rawSample = *reinterpret_cast<int8*>(&m_data[byteOffset]);
+
+    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int8>::max();
+
+    return sampleValue;
+  }
+
+  if (m_bitsPerSample == 16)
+  {
+    int16 rawSample = *reinterpret_cast<int16*>(&m_data[byteOffset]);
+
+    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int16>::max();
+    
+    return sampleValue;
+  }
+
+  if (m_bitsPerSample == 32)
+  {
+    int32 rawSample = *reinterpret_cast<int32*>(&m_data[byteOffset]);
+
+    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int32>::max();
+
+    return sampleValue;
+  }
+
+  return 0.0f;
 }
 
 void Audio::readRiffChunk(std::fstream& file, WAVE_HEADER& waveHeader)
@@ -151,4 +191,32 @@ void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
       break;
     }
   }
+}
+
+void Audio::createAudioSamples(uint16 precision, uint32 sampleRate, uint16 samplesPerFrame)
+{
+  m_samples = new float[getTotalNumFrames()];
+
+  printf("The number of audio data is: %d\n", m_dataSize);
+  printf("The number of samples is: %d\n", getNumSamples());
+  printf("The number of frames is: %d\n", getTotalNumFrames());
+
+  /*
+  * i = frames
+  * j = channels
+  */
+
+  int sample = 164;
+  int channel = 0;
+
+  printf("Channel:%d | Sample:%d | %f\n",channel,sample, getFrameSample(channel,sample));
+
+  
+
+  /*for (size_t i = 0; i < getNumChannels(); i++)
+  {
+    for (size_t j = 0; j < getNumSamples(); j++)
+    {
+    }
+  }*/
 }

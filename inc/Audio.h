@@ -1,7 +1,23 @@
 #pragma once
 #include "Prerequisites.h"
 #include <fstream>
-#include <array>
+
+/*
+* Size of the frame.
+* Each frame has a channel and a sample.
+*
+* Example: If I have a Stereo 44.1 16bits soundfile
+*         the audio data will be organized.
+*
+*         Frame1  Frame2
+*         v       v
+*         |-------|-------|
+*          --- --- --- --- --- ---
+* sample->| 0 | 1 | 2 | 3 | 4 | 5 |
+*          --- --- --- --- --- ---
+*           ^
+*           L channel
+*/
 
 //fourcc -> means "four character code"
 
@@ -53,32 +69,7 @@ struct WAVE_HEADER
   DATA_SUBCHUNK data;
 };
 
-template<typename SampleType>
-struct AudioBuffer {
-  AudioBuffer() = default;
-  explicit AudioBuffer(size_t numSamples, 
-                       size_t numChannels) :
-    : numSamples(m_numSamples), 
-      numChannels(m_numChannels)
-  {
-    m_buffer = new SampleType[m_numSamples];
-  }
-
-  ~AudioBuffer()
-  {
-    if (m_buffer)
-    {
-      delete[] m_buffer;
-      m_buffer = nullptr;
-    }
-  }
-
-  size_t m_numChannels;
-  size_t m_numSamples;
-  SampleType* m_buffer = nullptr;
-};
-
-
+#pragma pack(push, 4)
 class Audio
 {
  public:
@@ -100,27 +91,82 @@ class Audio
   void decode(const String& filePath);
   void encode(const String& filePath);
 
-  uint16 BytesPerSample()
+  /*
+  * Number of bytes per samples
+  */
+  NODISCARD
+  inline const uint16 getBytesPerSample() const
   {
     return m_bitsPerSample >> 3;
   }
+
+  /*
+  * Total number of frames
+  */
+  NODISCARD 
+  inline const uint16 getNumChannels() const
+  {
+    return m_numChannels;
+  }
+
+  /*
+  * Number of all samples in the audioData array.
+  */
+  NODISCARD
+  inline const uint32 getNumSamples() const
+  {
+    return (m_dataSize / getBytesPerSample())* m_numChannels;
+  }
+  
+  /*
+  * Frame Size = channels * bytesPerSample
+  */
+  NODISCARD
+  inline const uint16 getFrameSize() const
+  {
+    return getBytesPerSample() * m_numChannels;
+  }
+
+  /*
+  * Total number of frames
+  */
+  NODISCARD
+  inline const uint32 getTotalNumFrames() const
+  {
+     return getNumSamples() / m_numChannels;
+  }
+
+  NODISCARD
+  float getFrameSample(int channelIndex, int frameIndex);
+
+  
+
+
 
 private:
 
   void readRiffChunk(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
+
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
+
+  void createAudioSamples(uint16 precision,
+                          uint32 sampleRate,
+                          uint16 samplesPerFrame);
 
   
   uint32 m_sampleRate = 0;
   uint32 m_dataSize = 0;
-  uint8* m_data = nullptr;
   uint16 m_bitsPerSample = 0;
   uint16 m_numChannels = 0;
+
+  uint8* m_data = nullptr;
+  float* m_samples = nullptr;
   
   
 };
+#pragma pack(pop)
 
 /*
 * Samples = sampleRate * channels * duration(s);

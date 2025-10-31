@@ -5,7 +5,7 @@ int main()
 {
   Audio audio;
 
-  audio.decode("../rsc/Loquendo.wav");
+  audio.decode("../rsc/SoundFile_01.wav");
 
   audio.encode("../rsc/out2.wav");
 
