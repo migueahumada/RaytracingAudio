@@ -17,6 +17,12 @@
 *          --- --- --- --- --- ---
 *           ^
 *           L channel
+ 
+  - Data -> array of bytes.
+  - Sample -> the normalization of the data.
+  - Frame -> a container of samples which size is the number of channels.
+  
+ 
 */
 
 //fourcc -> means "four character code"
@@ -61,7 +67,9 @@ struct DATA_SUBCHUNK
   uint32 subchunk2Size;
 };
 
-
+/**
+ The header
+ */
 struct WAVE_HEADER
 {
   RIFF_CHUNK riff;
@@ -91,7 +99,7 @@ class Audio
   void decode(const String& filePath);
   void encode(const String& filePath);
 
-  /*
+  /**
   * Number of bytes per samples
   */
   NODISCARD
@@ -100,7 +108,7 @@ class Audio
     return m_bitsPerSample >> 3;
   }
 
-  /*
+  /**
   * Total number of frames
   */
   NODISCARD 
@@ -109,7 +117,7 @@ class Audio
     return m_numChannels;
   }
 
-  /*
+  /**
   * Number of all samples in the audioData array.
   */
   NODISCARD
@@ -118,7 +126,7 @@ class Audio
     return (m_dataSize / getBytesPerSample())* m_numChannels;
   }
   
-  /*
+  /**
   * Frame Size = channels * bytesPerSample
   */
   NODISCARD
@@ -127,8 +135,9 @@ class Audio
     return getBytesPerSample() * m_numChannels;
   }
 
-  /*
+  /**
   * Total number of frames
+   
   */
   NODISCARD
   inline const uint32 getTotalNumFrames() const
@@ -136,16 +145,17 @@ class Audio
      return getNumSamples() / m_numChannels;
   }
 
-  /*
+  /**
     Gets the frame Sample value in floats
   */
   NODISCARD
   float getFrameSample(int channelIndex, int frameIndex);
 
-  /*
+  /**
     Sets the frame sample value as a float
   */
-  void setFrameSample(int channelIndex, int frameIndex, 
+  void setFrameSample(int channelIndex,
+                      int frameIndex,
                       float sampleValue); 
   
   void processAudio();

@@ -5,11 +5,11 @@ int main()
 {
   Audio audio;
 
-  audio.decode("../rsc/SoundFile_01.wav");
+  audio.decode("/Users/miko/Documents/Coding/RaytracingAudio/rsc/Loquendo.wav");
 
   audio.processAudio();
 
-  audio.encode("../rsc/out2.wav");
+  audio.encode("/Users/miko/Documents/Coding/RaytracingAudio/rsc/out2.wav");
 
   
 

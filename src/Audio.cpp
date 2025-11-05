@@ -13,10 +13,6 @@ void Audio::create(uint32 sampleRate,
   m_numChannels = numChannels;
   m_dataSize = audioDataSize;
 
-  
-  
-  
-
 }
 
 void Audio::decode(const String& filePath)
@@ -81,29 +77,14 @@ void Audio::encode(const String& filePath)
 }
 
 // This is like using a get Pixel function
-/*
-* Size of the frame.
-* Each frame has a channel and a sample.
-*
-* Example: If I have a Stereo 44.1 16bits soundfile
-*         the audio data will be organized.
-*
-*         Frame1  Frame2
-*         v       v
-*         |-------|-------|
-*          --- --- --- --- --- ---
-* sample->| 0 | 1 | 2 | 3 | 4 | 5 |
-*          --- --- --- --- --- ---
-*           ^
-*           L channel
-*/
-float Audio::getFrameSample(int channelIndex, int frameIndex)
+float Audio::getFrameSample(int channelIndex,
+                            int frameIndex)
 {
   assert(channelIndex < m_numChannels &&
          "Channel should not be greater than the number of channels");
   assert(channelIndex >= 0 && "Channel should not be less than 0");
 
-  int byteOffset = (frameIndex * m_numChannels) + (channelIndex * getBytesPerSample());
+  int byteOffset = (channelIndex * m_numChannels) + (frameIndex * getBytesPerSample());
   
   if (m_bitsPerSample == 8)
   {
@@ -132,38 +113,38 @@ float Audio::getFrameSample(int channelIndex, int frameIndex)
   }
 
   return 0.0f;
-
 }
 
-void Audio::setFrameSample(int channelIndex, int frameIndex, float sampleValue)
+void Audio::setFrameSample(int channelIndex,
+                           int frameIndex,
+                           float sampleValue)
 {
   
   assert(channelIndex < m_numChannels &&
     "Channel should not be greater than the number of channels");
   assert(channelIndex >= 0 && "Channel should not be less than 0");
 
-  int byteOffset = (frameIndex * m_numChannels) + (channelIndex * getBytesPerSample());
+  int byteOffset = (channelIndex * m_numChannels) + (frameIndex * getBytesPerSample());
 
   if (m_bitsPerSample == 8)
   {
       
-    *reinterpret_cast<int8*>(&m_data[byteOffset]) = sampleValue * std::numeric_limits<int8>::max();
+    int8 out = static_cast<int8>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int8>::max())));
+    std::memcpy(&m_data[byteOffset], &out, sizeof(int8));
   }
 
   if (m_bitsPerSample == 16)
   {
 
-    int16_t out = static_cast<int16_t>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int16_t>::max())));
-    memcpy(&m_data[byteOffset], &out, sizeof(int16_t));
+    int16 out = static_cast<int16>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int16>::max())));
+    memcpy(&m_data[byteOffset], &out, sizeof(int16));
     
   }
 
   if (m_bitsPerSample == 32)
   {
-    float sample = std::round(sampleValue * (float)std::numeric_limits<int32>::max() / 1.0f);
-
-    memcpy(reinterpret_cast<int32*>(&m_data[byteOffset]), &sample, sizeof(int32));
-
+    int32 out = static_cast<int32>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int32>::max())));
+    memcpy(&m_data[byteOffset], &out, sizeof(int32));
 
   }
 
@@ -172,12 +153,19 @@ void Audio::setFrameSample(int channelIndex, int frameIndex, float sampleValue)
 
 void Audio::processAudio()
 {
-  createAudioSamples(m_bitsPerSample, m_sampleRate, m_numChannels);
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
+      setFrameSample(channel, frame, 0.0f);
+    }
+  }
 }
 
 
 
-void Audio::readRiffChunk(std::fstream& file, WAVE_HEADER& waveHeader)
+void Audio::readRiffChunk(std::fstream& file,
+                          WAVE_HEADER& waveHeader)
 {
   uint32 tempBuffer;
 
@@ -205,9 +193,9 @@ void Audio::readRiffChunk(std::fstream& file, WAVE_HEADER& waveHeader)
   waveHeader.riff.format = tempBuffer;
 }
 
-void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
+void Audio::readSubchunks(std::fstream& file,
+                          WAVE_HEADER& waveHeader)
 {
-  
 
   //ITERATE THROUGH SUBCHUNKS
   while (file.peek() != EOF)
@@ -248,21 +236,3 @@ void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
   }
 }
 
-void Audio::createAudioSamples(uint16 precision, uint32 sampleRate, uint16 samplesPerFrame)
-{
-
-  printf("The number of audio data is: %d\n", m_dataSize);
-  printf("The number of samples is: %d\n", getNumSamples());
-  printf("The number of frames is: %d\n", getTotalNumFrames());
-
-  for (size_t frame = 0; frame < getNumSamples(); ++frame)
-  {
-    for (size_t channel = 0; channel < getNumChannels(); ++channel)
-    {
-    
-      setFrameSample(channel, frame, 0.0f);
-    }
-  }
-  
-
-}
