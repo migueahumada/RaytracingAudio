@@ -14,7 +14,7 @@ void Audio::create(uint32 sampleRate,
   m_dataSize = audioDataSize;
 
   
-  createAudioSamples(bitDepth,sampleRate,numChannels);
+  
   
 
 }
@@ -80,21 +80,34 @@ void Audio::encode(const String& filePath)
   printf("Succesfully encoded an audio file.\n");
 }
 
-// Esto es usar memoria multidimensional para hacerla lineal
-// https://www.geeksforgeeks.org/c/how-does-c-allocate-memory-of-data-items-in-a-multidimensional-array/
+// This is like using a get Pixel function
+/*
+* Size of the frame.
+* Each frame has a channel and a sample.
+*
+* Example: If I have a Stereo 44.1 16bits soundfile
+*         the audio data will be organized.
+*
+*         Frame1  Frame2
+*         v       v
+*         |-------|-------|
+*          --- --- --- --- --- ---
+* sample->| 0 | 1 | 2 | 3 | 4 | 5 |
+*          --- --- --- --- --- ---
+*           ^
+*           L channel
+*/
 float Audio::getFrameSample(int channelIndex, int frameIndex)
 {
   assert(channelIndex < m_numChannels &&
          "Channel should not be greater than the number of channels");
   assert(channelIndex >= 0 && "Channel should not be less than 0");
 
-  int frameOffset = (frameIndex * m_numChannels) + channelIndex;
-  
-  int byteOffset = frameOffset * getBytesPerSample();
+  int byteOffset = (frameIndex * m_numChannels) + (channelIndex * getBytesPerSample());
   
   if (m_bitsPerSample == 8)
   {
-    int8 rawSample = *reinterpret_cast<int8*>(&m_data[byteOffset]);
+    int8 rawSample = *reinterpret_cast<int8*>(&m_data[byteOffset]); 
 
     float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int8>::max();
 
@@ -103,24 +116,66 @@ float Audio::getFrameSample(int channelIndex, int frameIndex)
 
   if (m_bitsPerSample == 16)
   {
+    //Esto si me devuelve el valor correcto en int16, pero no al convertirlo
     int16 rawSample = *reinterpret_cast<int16*>(&m_data[byteOffset]);
-
     float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int16>::max();
-    
+
     return sampleValue;
   }
 
   if (m_bitsPerSample == 32)
   {
     int32 rawSample = *reinterpret_cast<int32*>(&m_data[byteOffset]);
-
     float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int32>::max();
 
     return sampleValue;
   }
 
   return 0.0f;
+
 }
+
+void Audio::setFrameSample(int channelIndex, int frameIndex, float sampleValue)
+{
+  
+  assert(channelIndex < m_numChannels &&
+    "Channel should not be greater than the number of channels");
+  assert(channelIndex >= 0 && "Channel should not be less than 0");
+
+  int byteOffset = (frameIndex * m_numChannels) + (channelIndex * getBytesPerSample());
+
+  if (m_bitsPerSample == 8)
+  {
+      
+    *reinterpret_cast<int8*>(&m_data[byteOffset]) = sampleValue * std::numeric_limits<int8>::max();
+  }
+
+  if (m_bitsPerSample == 16)
+  {
+
+    int16_t out = static_cast<int16_t>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int16_t>::max())));
+    memcpy(&m_data[byteOffset], &out, sizeof(int16_t));
+    
+  }
+
+  if (m_bitsPerSample == 32)
+  {
+    float sample = std::round(sampleValue * (float)std::numeric_limits<int32>::max() / 1.0f);
+
+    memcpy(reinterpret_cast<int32*>(&m_data[byteOffset]), &sample, sizeof(int32));
+
+
+  }
+
+}
+
+
+void Audio::processAudio()
+{
+  createAudioSamples(m_bitsPerSample, m_sampleRate, m_numChannels);
+}
+
+
 
 void Audio::readRiffChunk(std::fstream& file, WAVE_HEADER& waveHeader)
 {
@@ -195,28 +250,19 @@ void Audio::readSubchunks(std::fstream& file, WAVE_HEADER& waveHeader)
 
 void Audio::createAudioSamples(uint16 precision, uint32 sampleRate, uint16 samplesPerFrame)
 {
-  m_samples = new float[getTotalNumFrames()];
 
   printf("The number of audio data is: %d\n", m_dataSize);
   printf("The number of samples is: %d\n", getNumSamples());
   printf("The number of frames is: %d\n", getTotalNumFrames());
 
-  /*
-  * i = frames
-  * j = channels
-  */
-
-  int sample = 164;
-  int channel = 0;
-
-  printf("Channel:%d | Sample:%d | %f\n",channel,sample, getFrameSample(channel,sample));
-
+  for (size_t frame = 0; frame < getNumSamples(); ++frame)
+  {
+    for (size_t channel = 0; channel < getNumChannels(); ++channel)
+    {
+    
+      setFrameSample(channel, frame, 0.0f);
+    }
+  }
   
 
-  /*for (size_t i = 0; i < getNumChannels(); i++)
-  {
-    for (size_t j = 0; j < getNumSamples(); j++)
-    {
-    }
-  }*/
 }

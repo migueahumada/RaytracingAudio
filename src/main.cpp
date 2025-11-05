@@ -7,6 +7,8 @@ int main()
 
   audio.decode("../rsc/SoundFile_01.wav");
 
+  audio.processAudio();
+
   audio.encode("../rsc/out2.wav");
 
   

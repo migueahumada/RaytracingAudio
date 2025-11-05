@@ -136,12 +136,19 @@ class Audio
      return getNumSamples() / m_numChannels;
   }
 
+  /*
+    Gets the frame Sample value in floats
+  */
   NODISCARD
   float getFrameSample(int channelIndex, int frameIndex);
 
+  /*
+    Sets the frame sample value as a float
+  */
+  void setFrameSample(int channelIndex, int frameIndex, 
+                      float sampleValue); 
   
-
-
+  void processAudio();
 
 private:
 
@@ -162,7 +169,6 @@ private:
   uint16 m_numChannels = 0;
 
   uint8* m_data = nullptr;
-  float* m_samples = nullptr;
   
   
 };
