@@ -1,6 +1,7 @@
 #include "Audio.h"
 #include <assert.h>
 #include <limits>
+#include <iostream>
 
 void Audio::create(uint32 sampleRate, 
                    uint16 bitDepth, 
@@ -76,6 +77,14 @@ void Audio::encode(const String& filePath)
   printf("Succesfully encoded an audio file.\n");
 }
 
+/*
+*              c0   c1
+*    frame 0  | x | x |
+*    frame 1  | x | x |
+*    frame 2  | x | x |
+* 
+*/
+
 // This is like using a get Pixel function
 float Audio::getFrameSample(int channelIndex,
                             int frameIndex)
@@ -84,35 +93,35 @@ float Audio::getFrameSample(int channelIndex,
          "Channel should not be greater than the number of channels");
   assert(channelIndex >= 0 && "Channel should not be less than 0");
 
-  int byteOffset = (channelIndex * m_numChannels) + (frameIndex * getBytesPerSample());
+  int samplePos = (frameIndex * m_numChannels + channelIndex) *  getBytesPerSample();
   
+  float sampleValue = 0;
+
   if (m_bitsPerSample == 8)
   {
-    int8 rawSample = *reinterpret_cast<int8*>(&m_data[byteOffset]); 
+    int8 rawSample = *reinterpret_cast<int8*>(&m_data[samplePos]);
 
-    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int8>::max();
+    sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int8>::max();
 
-    return sampleValue;
   }
 
   if (m_bitsPerSample == 16)
   {
-    //Esto si me devuelve el valor correcto en int16, pero no al convertirlo
-    int16 rawSample = *reinterpret_cast<int16*>(&m_data[byteOffset]);
-    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int16>::max();
+    int16 rawSample = *reinterpret_cast<int16*>(&m_data[samplePos]);
 
-    return sampleValue;
+    sampleValue = static_cast<float>(rawSample)/ std::numeric_limits<int16>::max();
+
   }
 
   if (m_bitsPerSample == 32)
   {
-    int32 rawSample = *reinterpret_cast<int32*>(&m_data[byteOffset]);
-    float sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int32>::max();
+    int32 rawSample = *reinterpret_cast<int32*>(&m_data[samplePos]);
+    sampleValue = static_cast<float>(rawSample) / std::numeric_limits<int32>::max();
 
-    return sampleValue;
   }
 
-  return 0.0f;
+  return sampleValue;
+
 }
 
 void Audio::setFrameSample(int channelIndex,
@@ -124,27 +133,26 @@ void Audio::setFrameSample(int channelIndex,
     "Channel should not be greater than the number of channels");
   assert(channelIndex >= 0 && "Channel should not be less than 0");
 
-  int byteOffset = (channelIndex * m_numChannels) + (frameIndex * getBytesPerSample());
+  int samplePos = (frameIndex * m_numChannels + channelIndex) * getBytesPerSample();
 
   if (m_bitsPerSample == 8)
   {
-      
     int8 out = static_cast<int8>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int8>::max())));
-    std::memcpy(&m_data[byteOffset], &out, sizeof(int8));
+    memcpy(&m_data[samplePos], &out, sizeof(int8));
   }
 
   if (m_bitsPerSample == 16)
   {
 
     int16 out = static_cast<int16>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int16>::max())));
-    memcpy(&m_data[byteOffset], &out, sizeof(int16));
+    memcpy(&m_data[samplePos], &out, sizeof(int16));
     
   }
 
   if (m_bitsPerSample == 32)
   {
     int32 out = static_cast<int32>(std::round(sampleValue * static_cast<float>(std::numeric_limits<int32>::max())));
-    memcpy(&m_data[byteOffset], &out, sizeof(int32));
+    memcpy(&m_data[samplePos], &out, sizeof(int32));
 
   }
 
@@ -153,11 +161,18 @@ void Audio::setFrameSample(int channelIndex,
 
 void Audio::processAudio()
 {
+  
+  printf("The number of byte data is: %d\n", m_dataSize);
+  printf("The number of samples is: %d\n", getTotalNumSamples());
+  printf("The number of frames is: %d\n",getTotalNumFrames());
+
+
   for (int frame = 0; frame < getTotalNumFrames(); ++frame)
   {
     for (int channel = 0; channel < getNumChannels(); ++channel)
     {
-      setFrameSample(channel, frame, 0.0f);
+      float inSample = getFrameSample(channel, frame);
+      setFrameSample(channel, frame, inSample * 0.5f);
     }
   }
 }

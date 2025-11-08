@@ -121,19 +121,19 @@ class Audio
   * Number of all samples in the audioData array.
   */
   NODISCARD
-  inline const uint32 getNumSamples() const
+  inline const uint32 getTotalNumSamples() const
   {
-    return (m_dataSize / getBytesPerSample())* m_numChannels;
+    return (m_dataSize / getBytesPerSample());
   }
   
-  /**
-  * Frame Size = channels * bytesPerSample
-  */
-  NODISCARD
-  inline const uint16 getFrameSize() const
-  {
-    return getBytesPerSample() * m_numChannels;
-  }
+  ///**
+  //* Frame Size = channels * bytesPerSample
+  //*/
+  //NODISCARD
+  //inline const uint16 getFrameSize() const
+  //{
+  //  return getBytesPerSample() * m_numChannels;
+  //}
 
   /**
   * Total number of frames
@@ -142,7 +142,7 @@ class Audio
   NODISCARD
   inline const uint32 getTotalNumFrames() const
   {
-     return getNumSamples() / m_numChannels;
+     return getTotalNumSamples() / m_numChannels;
   }
 
   /**
@@ -167,10 +167,6 @@ private:
 
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
-
-  void createAudioSamples(uint16 precision,
-                          uint32 sampleRate,
-                          uint16 samplesPerFrame);
 
   
   uint32 m_sampleRate = 0;
