@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <limits>
 #include <iostream>
+#include <cmath>
+#include <algorithm>
+#define TWOPI 3.14159265
 
 void Audio::create(uint32 sampleRate, 
                    uint16 bitDepth, 
@@ -166,15 +169,70 @@ void Audio::processAudio()
   printf("The number of samples is: %d\n", getTotalNumSamples());
   printf("The number of frames is: %d\n",getTotalNumFrames());
 
+  int blockSize = 128;
+  int totalFrameBlock = getTotalNumFrames() / blockSize;
 
   for (int frame = 0; frame < getTotalNumFrames(); ++frame)
   {
     for (int channel = 0; channel < getNumChannels(); ++channel)
     {
-      float inSample = getFrameSample(channel, frame);
-      setFrameSample(channel, frame, inSample * 0.5f);
+      /*float inSample = getFrameSample(channel, frame);
+      setFrameSample(channel, frame, inSample * 0.5f);*/
     }
   }
+
+  
+}
+
+void Audio::sine(float amp,
+                 float freq,
+                 float phase)
+{
+
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
+
+      float outSample = amp * std::cosf(TWOPI * frame * freq / m_sampleRate + phase);
+
+      setFrameSample(channel, frame, std::clamp(outSample,-1.0f,1.0f));
+    }
+  }
+}
+
+void Audio::phoneDial(float amp, float freq, float phase)
+{
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
+
+      float outSample = amp * std::cosf(TWOPI * frame * freq / m_sampleRate + phase)
+        * std::cosf(TWOPI * frame * 100.0f / m_sampleRate + phase);
+
+      setFrameSample(channel, frame, std::clamp(outSample, -1.0f, 1.0f));
+    }
+  }
+}
+
+/**
+*
+*   y[n] = x[n] + x[n - 1]
+*/
+
+void Audio::lowpass(const float* x, float* y,
+                    const size_t blockSize,
+                    const float xm1)
+{
+  
+  for (int n = 0; n < blockSize; ++n)
+  {
+    y[n] = x[n] + x[n - 1];
+  }
+
+
+
 }
 
 

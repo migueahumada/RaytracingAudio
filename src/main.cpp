@@ -1,8 +1,7 @@
 #include "Audio.h"
-#include <vector>
 
 #ifdef _WIN32
-  #define INPATH "../rsc/SoundFile_01.wav"
+  #define INPATH "../rsc/Woosh.wav"
   #define OUTPATH  "../rsc/out2.wav"
 #endif
 
@@ -24,6 +23,8 @@ int main()
   audio.decode(INPATH);
 
   audio.processAudio();
+
+  audio.phoneDial(0.1f,1000.0f,0.5f);
 
   audio.encode(OUTPATH);
 

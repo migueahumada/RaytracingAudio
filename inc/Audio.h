@@ -160,6 +160,18 @@ class Audio
   
   void processAudio();
 
+  void sine(float amp = 0.5f, 
+            float freq = 444.0f,
+            float phase = 0.0f);
+
+  void phoneDial(float amp = 0.5f,
+                 float freq = 444.0f,
+                 float phase = 0.0f);
+
+  void lowpass(const float* x, float* y,
+               const size_t blockSize, 
+               float filterState);
+
 private:
 
   void readRiffChunk(std::fstream& file, 
