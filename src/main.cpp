@@ -24,7 +24,7 @@ int main()
 
   audio.processAudio();
 
-  audio.phoneDial(0.1f,1000.0f,0.5f);
+  audio.biquad(FilterType::BANDPASS,500.0,0.707f);
 
   audio.encode(OUTPATH);
 

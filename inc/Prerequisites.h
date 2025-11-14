@@ -4,8 +4,10 @@
 #include <array>
 #include <map>
 
+
 #define NODISCARD_MSG "This value is not being used!"
 #define NODISCARD [[nodiscard(NODISCARD_MSG)]]
+#define PI 3.14159265
 
 using uint8 = uint8_t;
 using uint16 = uint16_t;

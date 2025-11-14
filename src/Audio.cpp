@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
-#define TWOPI 3.14159265
+
 
 void Audio::create(uint32 sampleRate, 
                    uint16 bitDepth, 
@@ -194,7 +194,7 @@ void Audio::sine(float amp,
     for (int channel = 0; channel < getNumChannels(); ++channel)
     {
 
-      float outSample = amp * std::cosf(TWOPI * frame * freq / m_sampleRate + phase);
+      float outSample = amp * std::cosf(2 * PI * frame * freq / m_sampleRate + phase);
 
       setFrameSample(channel, frame, std::clamp(outSample,-1.0f,1.0f));
     }
@@ -208,8 +208,8 @@ void Audio::phoneDial(float amp, float freq, float phase)
     for (int channel = 0; channel < getNumChannels(); ++channel)
     {
 
-      float outSample = amp * std::cosf(TWOPI * frame * freq / m_sampleRate + phase)
-        * std::cosf(TWOPI * frame * 100.0f / m_sampleRate + phase);
+      float outSample = amp * std::cosf(2*PI * frame * freq / m_sampleRate + phase)
+        * std::cosf(2 * PI * frame * 100.0f / m_sampleRate + phase);
 
       setFrameSample(channel, frame, std::clamp(outSample, -1.0f, 1.0f));
     }
@@ -221,18 +221,161 @@ void Audio::phoneDial(float amp, float freq, float phase)
 *   y[n] = x[n] + x[n - 1]
 */
 
-void Audio::lowpass(const float* x, float* y,
-                    const size_t blockSize,
-                    const float xm1)
+void Audio::lowpass(float cutoff, float Q)
 {
   
-  for (int n = 0; n < blockSize; ++n)
+  
+
+  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  float alpha = std::sinf(w0) / 2.0f * Q;
+
+  float b0 = (1.0f - std::cosf(w0)) / 2.0f;
+  float b1 = 1.0f - std::cosf(w0);
+  float b2 = (1.0f - std::cosf(w0)) / 2.0f;
+
+  float a0 = 1.0f + alpha;
+  float a1 = -2.0f * std::cosf(w0);
+  float a2 = 1.0f - alpha;
+
+  a1 /= a0;
+  a2 /= a0;
+  b0 /= a0;
+  b1 /= a0;
+  b2 /= a0;
+
+  float x1 = 0;
+  float x2 = 0;
+  float y1 = 0;
+  float y2 = 0;
+
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    y[n] = x[n] + x[n - 1];
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
+      
+
+
+      float x = getFrameSample(channel, frame);
+
+      float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+
+      x2 = x1;
+      x1 = x;
+      y2 = y1;
+      y1 = y;
+
+      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+    }
   }
 
+}
+
+void Audio::highpass(float cutoff, float Q)
+{
+  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  float alpha = std::sinf(w0) / 2.0f * Q;
+
+  float b0 = (1.0f + std::cosf(w0)) / 2.0f;
+  float b1 = -1 * (1.0f + std::cosf(w0));
+  float b2 = (1.0f + std::cosf(w0)) / 2.0f;
+
+  float a0 = 1.0f + alpha;
+  float a1 = -2.0f * std::cosf(w0);
+  float a2 = 1.0f - alpha;
+
+  a1 /= a0;
+  a2 /= a0;
+  b0 /= a0;
+  b1 /= a0;
+  b2 /= a0;
+
+  float x1 = 0;
+  float x2 = 0;
+  float y1 = 0;
+  float y2 = 0;
+
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
 
 
+
+      float x = getFrameSample(channel, frame);
+
+      float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+
+      x2 = x1;
+      x1 = x;
+      y2 = y1;
+      y1 = y;
+
+      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+    }
+  }
+}
+
+void Audio::bandpass(float cutoff, float Q)
+{
+  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  float alpha = std::sinf(w0) / 2.0f * Q;
+
+  float b0 = std::sinf(w0) / 2.0f;
+  float b1 = 0;
+  float b2 = (std::sinf(w0) / 2.0f) * -1.0f;
+
+  float a0 = 1.0f + alpha;
+  float a1 = -2.0f * std::cosf(w0);
+  float a2 = 1.0f - alpha;
+
+  a1 /= a0;
+  a2 /= a0;
+  b0 /= a0;
+  b1 /= a0;
+  b2 /= a0;
+
+  float x1 = 0;
+  float x2 = 0;
+  float y1 = 0;
+  float y2 = 0;
+
+  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (int channel = 0; channel < getNumChannels(); ++channel)
+    {
+
+
+
+      float x = getFrameSample(channel, frame);
+
+      float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+
+      x2 = x1;
+      x1 = x;
+      y2 = y1;
+      y1 = y;
+
+      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+    }
+  }
+}
+
+void Audio::biquad(FilterType::E type, float cutoff, float Q)
+{
+  switch (type)
+  {
+  case FilterType::LOWPASS:
+    lowpass(cutoff,Q);
+    break;
+  case FilterType::HIGHPASS:
+    highpass(cutoff,Q);
+    break;
+  case FilterType::BANDPASS:
+    bandpass(cutoff,Q);
+    break;
+  default:
+    break;
+  }
 }
 
 

@@ -27,6 +27,15 @@
 
 //fourcc -> means "four character code"
 
+namespace FilterType
+{
+  enum E {
+    LOWPASS = 0,
+    HIGHPASS,
+    BANDPASS
+  };
+}
+
 #ifdef _WIN32
   #define fourccRIFF 'FFIR'
   #define fourccWAVE 'EVAW'
@@ -161,16 +170,19 @@ class Audio
   void processAudio();
 
   void sine(float amp = 0.5f, 
-            float freq = 444.0f,
+            float freq = 440.0f,
             float phase = 0.0f);
 
   void phoneDial(float amp = 0.5f,
-                 float freq = 444.0f,
+                 float freq = 440.0f,
                  float phase = 0.0f);
 
-  void lowpass(const float* x, float* y,
-               const size_t blockSize, 
-               float filterState);
+  void lowpass(float cutoff, float Q);
+  void highpass(float cutoff, float Q);
+  void bandpass(float cutoff, float Q);
+
+  void biquad(FilterType::E type,float cutoff, float Q);
+
 
 private:
 
