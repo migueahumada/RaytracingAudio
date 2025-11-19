@@ -145,16 +145,16 @@ class Audio
   * Number of all samples in the audioData array.
   */
   NODISCARD
-  inline const uint32 getTotalNumSamples() const
+  inline const size_t getTotalNumSamples() const
   {
-    return static_cast<uint32>(m_dataSize / getBytesPerSample());
+    return m_dataSize / getBytesPerSample();
   }
 
   /**
   * Total number of frames
   */
   NODISCARD
-  inline const uint32 getTotalNumFrames() const
+  inline const size_t getTotalNumFrames() const
   {
      return getTotalNumSamples() / m_numChannels;
   }

@@ -31,7 +31,7 @@ int main()
   Audio newAudio;
   uint32 seconds = 15;
   newAudio.create(96000,16,4, seconds);
-  newAudio.sine();
+  newAudio.sine(0.5f,440.0f);
   newAudio.encode(OUTPATH2);
   
   

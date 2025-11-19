@@ -186,11 +186,9 @@ void Audio::processAudio()
 {
   
   printf("The number of byte data is: %d\n", (int)m_dataSize);
-  printf("The number of samples is: %d\n", getTotalNumSamples());
-  printf("The number of frames is: %d\n",getTotalNumFrames());
+  printf("The number of samples is: %d\n", (int)getTotalNumSamples());
+  printf("The number of frames is: %d\n", (int)getTotalNumFrames());
 
-  int blockSize = 128;
-  int totalFrameBlock = getTotalNumFrames() / blockSize;
 
   for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
   {
@@ -209,12 +207,12 @@ void Audio::sine(float amp,
                  float phase)
 {
 
-  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
+  for (uint32 frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    for (size_t channel = 0; channel < getNumChannels(); ++channel)
+    for (uint32 channel = 0; channel < getNumChannels(); ++channel)
     {
 
-      float outSample = amp * std::cosf(2 * PI * frame * freq / m_sampleRate + phase);
+      float outSample = amp * std::cosf(2.0f * PI * frame * freq / m_sampleRate + phase);
 
       setFrameSample(channel, frame, std::clamp(outSample,-1.0f,1.0f));
     }
@@ -223,13 +221,13 @@ void Audio::sine(float amp,
 
 void Audio::phoneDial(float amp, float freq, float phase)
 {
-  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
+  for (uint32 frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    for (size_t channel = 0; channel < getNumChannels(); ++channel)
+    for (uint32 channel = 0; channel < getNumChannels(); ++channel)
     {
 
       float outSample = amp * std::cosf(2*PI * frame * freq / m_sampleRate + phase)
-        * std::cosf(2 * PI * frame * 100.0f / m_sampleRate + phase);
+        * std::cosf(2.0f * PI * frame * 100.0f / m_sampleRate + phase);
 
       setFrameSample(channel, frame, std::clamp(outSample, -1.0f, 1.0f));
     }
@@ -246,7 +244,7 @@ void Audio::lowpass(float cutoff, float Q)
   
   
 
-  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  const float w0 = 2.0f * PI * cutoff / m_sampleRate;
   float alpha = std::sinf(w0) / 2.0f * Q;
 
   float b0 = (1.0f - std::cosf(w0)) / 2.0f;
@@ -292,7 +290,7 @@ void Audio::lowpass(float cutoff, float Q)
 
 void Audio::highpass(float cutoff, float Q)
 {
-  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  const float w0 = 2.0f * PI * cutoff / m_sampleRate;
   float alpha = std::sinf(w0) / 2.0f * Q;
 
   float b0 = (1.0f + std::cosf(w0)) / 2.0f;
@@ -337,7 +335,7 @@ void Audio::highpass(float cutoff, float Q)
 
 void Audio::bandpass(float cutoff, float Q)
 {
-  const float w0 = 2 * PI * cutoff / m_sampleRate;
+  const float w0 = 2.0f * PI * cutoff / m_sampleRate;
   float alpha = std::sinf(w0) / 2.0f * Q;
 
   float b0 = std::sinf(w0) / 2.0f;
