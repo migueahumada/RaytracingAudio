@@ -25,12 +25,17 @@ int main()
   Audio audio;
   audio.decode(INPATH);
   audio.processAudio();
-  audio.biquad(FilterType::BANDPASS,500.0,0.707f);
+
+  audio.butterworth(FilterType::LOWPASS, 800.0f);
+  audio.butterworth(FilterType::HIGHPASS, 100.0f);
+  /*audio.biquad(FilterType::LOWPASS,800.0,0.707f);
+  audio.biquad(FilterType::HIGHPASS, 100.0, 0.707f);*/
+  
   audio.encode(OUTPATH);
 
   Audio newAudio;
-  uint32 seconds = 15;
-  newAudio.create(96000,16,4, seconds);
+  uint32 milliseconds = 250;
+  newAudio.create(96000,16,4, milliseconds);
   newAudio.sine(0.5f,440.0f);
   newAudio.encode(OUTPATH2);
   

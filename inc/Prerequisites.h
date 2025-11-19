@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <map>
+#include <vector>
 
 
 #define NODISCARD_MSG "This value is not being used!"
@@ -28,3 +29,6 @@ using Map = std::map<K,V>;
 
 template<class T, size_t N>
 using Array = std::array<T, N>;
+
+template<class T>
+using Vector = std::vector<T>;

@@ -86,7 +86,7 @@ struct WAVE_HEADER
   DATA_SUBCHUNK data;
 };
 
-#pragma pack(push, 4)
+#pragma pack(push, 8)
 class Audio
 {
  public:
@@ -101,18 +101,14 @@ class Audio
     }
   }
 
+  
   /*
-  * Creates
+  * Creates an audio object with an specified data size.
   */
   void create(uint32 sampleRate,
               uint16 bitDepth,
               uint16 numChannels,
-              size_t audioDataSize);
-
-  void create(uint32 sampleRate,
-              uint16 bitDepth,
-              uint16 numChannels,
-              uint32 duration);
+              uint32& durationInMS);
   /**
   * Reads the contents of a wave file 
   **/
@@ -187,13 +183,30 @@ class Audio
   void bandpass(float cutoff, float Q);
 
   void biquad(FilterType::E type,float cutoff, float Q);
+  void butterworth(FilterType::E type, float cutoff);
 
+
+  void digitalIntegrator();
 
 private:
 
+  /*
+  * Used to create the object
+  */
+  void create(uint32 sampleRate,
+    uint16 bitDepth,
+    uint16 numChannels,
+    size_t audioDataSize);
+
+  /*
+  * Reads the RIFF chunk from an wavefile
+  */
   void readRiffChunk(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
-
+  /*
+  * Reads the subchunks, only FMT and DATA.
+  * TODO: Add more subchunks for metadata
+  */
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
 
