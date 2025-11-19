@@ -25,7 +25,7 @@
  
 */
 
-//fourcc -> means "four character code"
+
 
 namespace FilterType
 {
@@ -36,8 +36,8 @@ namespace FilterType
   };
 }
 
-#ifdef _WIN32
-  #define fourccRIFF 'FFIR'
+#ifdef _WIN64
+  #define fourccRIFF 'FFIR' //fourcc -> means "four character code"
   #define fourccWAVE 'EVAW'
   #define fourccFMT  ' tmf'
   #define fourccDATA 'atad'
@@ -101,11 +101,26 @@ class Audio
     }
   }
 
+  /*
+  * Creates
+  */
   void create(uint32 sampleRate,
               uint16 bitDepth,
               uint16 numChannels,
-              uint32 audioDataSize);
+              size_t audioDataSize);
+
+  void create(uint32 sampleRate,
+              uint16 bitDepth,
+              uint16 numChannels,
+              uint32 duration);
+  /**
+  * Reads the contents of a wave file 
+  **/
   void decode(const String& filePath);
+  
+  /**
+  * Outputs a wave file with the data from this class
+  **/
   void encode(const String& filePath);
 
   /**
@@ -132,21 +147,11 @@ class Audio
   NODISCARD
   inline const uint32 getTotalNumSamples() const
   {
-    return (m_dataSize / getBytesPerSample());
+    return static_cast<uint32>(m_dataSize / getBytesPerSample());
   }
-  
-  ///**
-  //* Frame Size = channels * bytesPerSample
-  //*/
-  //NODISCARD
-  //inline const uint16 getFrameSize() const
-  //{
-  //  return getBytesPerSample() * m_numChannels;
-  //}
 
   /**
   * Total number of frames
-   
   */
   NODISCARD
   inline const uint32 getTotalNumFrames() const
@@ -192,9 +197,8 @@ private:
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
 
-  
+  size_t m_dataSize = 0;
   uint32 m_sampleRate = 0;
-  uint32 m_dataSize = 0;
   uint16 m_bitsPerSample = 0;
   uint16 m_numChannels = 0;
 
@@ -205,10 +209,14 @@ private:
 #pragma pack(pop)
 
 /*
+* 
+* 
 * Samples = sampleRate * channels * duration(s);
 * 
-* NumSamples = (numBytes/bytesPerSample) * channnels;
 * 
-* NumBytes = (numSamples * bytesPerSample) / channels;
+* 
+* NumBytes = numSamples * bytesPerSample;
+* 
+* DataSize = sampleRate * channels * duration
 **/
 

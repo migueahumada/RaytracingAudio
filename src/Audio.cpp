@@ -9,14 +9,34 @@
 void Audio::create(uint32 sampleRate, 
                    uint16 bitDepth, 
                    uint16 numChannels, 
-                   uint32 audioDataSize)
+                   size_t audioDataSize)
 {
 
   m_sampleRate = sampleRate;
   m_bitsPerSample = bitDepth;
   m_numChannels = numChannels;
   m_dataSize = audioDataSize;
+  
 
+}
+
+void Audio::create(uint32 sampleRate,
+                   uint16 bitDepth,
+                   uint16 numChannels,
+                   uint32 duration)
+{
+  m_sampleRate = sampleRate;
+  m_bitsPerSample = bitDepth;
+  m_numChannels = numChannels;
+
+  uint32 numSamples = m_sampleRate * numChannels * duration; 
+  uint32 dataSize = numSamples * getBytesPerSample();
+
+  m_dataSize = dataSize;
+  
+  m_data = new uint8[dataSize];
+
+  memset(m_data,0,dataSize);
 }
 
 void Audio::decode(const String& filePath)
@@ -37,7 +57,7 @@ void Audio::decode(const String& filePath)
   create(waveHeader.fmt.sampleRate,
          waveHeader.fmt.bitsPerSample,
          waveHeader.fmt.numChannels,
-         waveHeader.data.subchunk2Size);
+         static_cast<size_t>(waveHeader.data.subchunk2Size));
 
   file.close();
 
@@ -56,7 +76,7 @@ void Audio::encode(const String& filePath)
 
   WAVE_HEADER waveHeader{0};
   waveHeader.riff.chunkID = fourccRIFF;
-  waveHeader.riff.chunkSize = sizeof(WAVE_HEADER) - 8 + m_dataSize;
+  waveHeader.riff.chunkSize = static_cast<uint32>(sizeof(WAVE_HEADER) - 8 + m_dataSize);
   waveHeader.riff.format = fourccWAVE;
 
   waveHeader.fmt.subchunk1ID = fourccFMT;
@@ -69,7 +89,7 @@ void Audio::encode(const String& filePath)
   waveHeader.fmt.bitsPerSample = m_bitsPerSample;
 
   waveHeader.data.subchunk2ID = fourccDATA;
-  waveHeader.data.subchunk2Size = m_dataSize;
+  waveHeader.data.subchunk2Size = static_cast<uint32>(m_dataSize);
 
   file.write(reinterpret_cast<char*>(&waveHeader), sizeof(waveHeader));
 
@@ -165,16 +185,16 @@ void Audio::setFrameSample(int channelIndex,
 void Audio::processAudio()
 {
   
-  printf("The number of byte data is: %d\n", m_dataSize);
+  printf("The number of byte data is: %d\n", (int)m_dataSize);
   printf("The number of samples is: %d\n", getTotalNumSamples());
   printf("The number of frames is: %d\n",getTotalNumFrames());
 
   int blockSize = 128;
   int totalFrameBlock = getTotalNumFrames() / blockSize;
 
-  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    for (int channel = 0; channel < getNumChannels(); ++channel)
+    for (size_t channel = 0; channel < getNumChannels(); ++channel)
     {
       /*float inSample = getFrameSample(channel, frame);
       setFrameSample(channel, frame, inSample * 0.5f);*/
@@ -189,9 +209,9 @@ void Audio::sine(float amp,
                  float phase)
 {
 
-  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    for (int channel = 0; channel < getNumChannels(); ++channel)
+    for (size_t channel = 0; channel < getNumChannels(); ++channel)
     {
 
       float outSample = amp * std::cosf(2 * PI * frame * freq / m_sampleRate + phase);
@@ -203,9 +223,9 @@ void Audio::sine(float amp,
 
 void Audio::phoneDial(float amp, float freq, float phase)
 {
-  for (int frame = 0; frame < getTotalNumFrames(); ++frame)
+  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
   {
-    for (int channel = 0; channel < getNumChannels(); ++channel)
+    for (size_t channel = 0; channel < getNumChannels(); ++channel)
     {
 
       float outSample = amp * std::cosf(2*PI * frame * freq / m_sampleRate + phase)
