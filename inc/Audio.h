@@ -1,5 +1,6 @@
 #pragma once
 #include "Prerequisites.h"
+#include "MathObjects.h"
 #include <fstream>
 
 /*

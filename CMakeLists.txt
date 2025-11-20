@@ -8,10 +8,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(HEADERS) )
 
 set(HEADERS inc/Prerequisites.h
+            inc/MathObjects.h
+            inc/Image.h
             inc/Audio.h)
 
 set(SOURCES src/main.cpp
-            src/Audio.cpp)
+            src/Audio.cpp
+            src/Image.cpp)
 
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})

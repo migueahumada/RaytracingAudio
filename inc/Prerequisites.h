@@ -10,7 +10,7 @@
 #define NODISCARD [[nodiscard(NODISCARD_MSG)]]
 //#define PI 3.14159265
 
-constexpr float PI = 3.14159265f;
+
 
 using uint8 = uint8_t;
 using uint16 = uint16_t;
@@ -32,3 +32,4 @@ using Array = std::array<T, N>;
 
 template<class T>
 using Vector = std::vector<T>;
+
