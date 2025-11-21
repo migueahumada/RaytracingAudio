@@ -45,7 +45,15 @@ int main()
   
   Image image;
   image.decode(IMG_INPATH);
+
   image.encode(IMG_OUTPATH);
+
+  Image image2;
+  image2.create(256,256,32);
+  image2.clearColor(Color(0, 0, 255, 255));
+  image2.encode("../rsc/OutImage2.bmp");
+  
+
   
   
 

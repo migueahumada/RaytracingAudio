@@ -38,25 +38,32 @@ struct BITMAP_HEADER
 
 struct Color
 {
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-  unsigned char a;
+  Color(uint8 r = 0, uint8 g = 0, uint8 b = 0, uint8 a = 255) 
+    : r(r), g(g), b(b), a(a)
+  {}
+
+  uint8 r;
+  uint8 g;
+  uint8 b;
+  uint8 a;
 };
 
+/*
+* Image is set to BGRA
+*/
 class Image
 {
  public:
   Image() = default;
 
   NODISCARD
-  inline uint16 getBytesPerPixel()
+  inline uint16 getBytesPerPixel() const
   {
     return m_bpp >> 3;
   }
 
   NODISCARD
-  inline uint32 getPitch()
+  inline uint32 getPitch() const
   {
     return m_width * getBytesPerPixel();
   }
@@ -64,6 +71,13 @@ class Image
   void create(uint32 width, uint32 height, uint16 bitsPerPixel);
   void decode(const String& filePath);
   void encode(const String& filePath);
+
+  NODISCARD
+  Color getPixel(uint32 x, uint32 y) const;
+
+  void setPixel(uint32 x, uint32 y, const Color& color);
+
+  void clearColor(const Color& color);
   
 
  private:
