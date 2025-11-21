@@ -1,7 +1,9 @@
 #pragma once
 #include "Prerequisites.h"
 
+#define BMP_TYPE 'MB'
 
+#pragma pack(push, 2)
 struct BITMAP_FILE_HEADER
 {
   uint16 signature;
@@ -11,9 +13,10 @@ struct BITMAP_FILE_HEADER
   uint32 offsetToData;
 };
 
+
 struct BITMAP_DIB_HEADER
 {
-  uint32 headerSize;
+  uint32 size;
   uint32 width;
   uint32 height;
   uint16 planes;
@@ -22,8 +25,8 @@ struct BITMAP_DIB_HEADER
   uint32 imageSize;
   uint32 xPixelsPerMeter;
   uint32 yPixelsPerMeter;
-  uint32 colorsInColorTable;
-  uint32 colorCount;
+  uint32 colorsUsed;
+  uint32 importantColors;
 };
 
 struct BITMAP_HEADER
@@ -31,6 +34,7 @@ struct BITMAP_HEADER
   BITMAP_FILE_HEADER fileHeader;
   BITMAP_DIB_HEADER dibHeader;
 };
+#pragma pack(pop)
 
 struct Color
 {
@@ -43,7 +47,7 @@ struct Color
 class Image
 {
  public:
-  Image();
+  Image() = default;
 
   NODISCARD
   inline uint16 getBytesPerPixel()
@@ -59,7 +63,7 @@ class Image
   
   void create(uint32 width, uint32 height, uint16 bitsPerPixel);
   void decode(const String& filePath);
-  void encode();
+  void encode(const String& filePath);
   
 
  private:

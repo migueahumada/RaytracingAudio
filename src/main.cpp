@@ -1,9 +1,13 @@
 #include "Audio.h"
+#include "Image.h"
 
 #ifdef _WIN32
   #define INPATH "../rsc/Woosh.wav"
   #define OUTPATH "../rsc/out2.wav"
   #define OUTPATH2 "../rsc/out3.wav"
+
+  #define IMG_INPATH "../rsc/TestImage.bmp"
+  #define IMG_OUTPATH "../rsc/OutImage.bmp"
 #endif
 
 #ifdef __APPLE__
@@ -39,7 +43,9 @@ int main()
   newAudio.sine(0.5f,440.0f);
   newAudio.encode(OUTPATH2);
   
-  
+  Image image;
+  image.decode(IMG_INPATH);
+  image.encode(IMG_OUTPATH);
   
   
 
