@@ -57,8 +57,7 @@ int main()
   image2.encode("../rsc/OutImage2.bmp");
   
 
-  
-  
+
 
   return 0;
 }
