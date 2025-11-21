@@ -57,9 +57,10 @@ class Image
     return m_width * getBytesPerPixel();
   }
   
-  void create();
+  void create(uint32 width, uint32 height, uint16 bitsPerPixel);
+  void decode(const String& filePath);
   void encode();
-  void decode();
+  
 
  private:
 
