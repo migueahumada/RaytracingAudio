@@ -9,6 +9,8 @@
 #define NODISCARD_MSG "This value is not being used!"
 #define NODISCARD [[nodiscard(NODISCARD_MSG)]]
 
+
+
 using uint8 = uint8_t;
 using uint16 = uint16_t;
 using uint32 = uint32_t;
@@ -42,4 +44,6 @@ Num clamp(Num value, Num min, Num max)
 	return value;
 
 }
+
+
 

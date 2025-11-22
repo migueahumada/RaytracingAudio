@@ -1,5 +1,6 @@
 #include "Audio.h"
 #include "Image.h"
+#include "ComputeAPI.h"
 
 #ifdef _WIN32
   #define INPATH "../rsc/Woosh.wav"
@@ -25,6 +26,7 @@
   #define OUTPATH2  "../../rsc/out3.wav"
 #endif
 
+                                               
 
 int main()
 {
@@ -56,6 +58,11 @@ int main()
   image2.clearColor(Color(0, 0, 255, 255));
   image2.encode("../rsc/OutImage2.bmp");
   
+  
+  ComputeAPI computeAPI;
+
+  computeAPI.Init();
+  computeAPI.DecodeProgram("../compute/compute.cl");
 
 
 
