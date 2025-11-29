@@ -64,6 +64,7 @@ int main()
   computeAPI.Init();
   computeAPI.DecodeProgram("../compute/compute.cl");
 
+  Complex<int> comp(3,4);
 
 
   return 0;
