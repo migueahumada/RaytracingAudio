@@ -16,6 +16,9 @@
   #define INPATH "../../rsc/SoundFile_01.wav"
   #define OUTPATH "../../rsc/out2.wav"
   #define OUTPATH2 "../../rsc/out3.wav"
+
+  #define IMG_INPATH "../../rsc/TestImage.bmp"
+  #define IMG_OUTPATH "../../rsc/OutImage.bmp"
 #endif
 
 #ifdef __UNIX__
