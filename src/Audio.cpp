@@ -31,7 +31,7 @@ void Audio::create(uint32 sampleRate,
   
   float seconds = durationInMS * 0.001f;
 
-  uint32 numSamples = m_sampleRate * numChannels * seconds;
+  uint32 numSamples = static_cast<uint32>(m_sampleRate * numChannels * seconds);
   
   uint32 dataSize = numSamples * getBytesPerSample();
 
