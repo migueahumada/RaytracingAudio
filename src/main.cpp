@@ -1,7 +1,8 @@
 #include "Audio.h"
 #include "Image.h"
 
-
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
 
 #ifdef _WIN32
   #define INPATH "../rsc/Woosh.wav"
@@ -27,6 +28,8 @@
   #define OUTPATH2  "../../rsc/out3.wav"
 #endif
 
+
+
 namespace ShapeType
 {
   enum E {
@@ -51,6 +54,8 @@ struct IntersectionInfo
 
 
 };
+
+
 
 void audioProcesses()
 {
@@ -435,7 +440,7 @@ int main()
 
   spheres.emplace_back(Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
   spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(-27, -39, 157), 10, Vector3(255, 69, 0), kA, kD, kS);
+  spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
   spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
   spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
 
@@ -481,13 +486,22 @@ int main()
   //Scene
   Scene scene(light, planes, spheres, triangles, eye);
 
+  //Cube
+  Cube cube({ 30, 9, 100 }, 30, {255,0,0}, {kA,kD,kS});
+  for (size_t i = 0; i < cube.triangles.size(); ++i)
+  {
+    scene.m_triangles.push_back(cube.triangles[i]);
+  }
+
+  
+  
+
   //Image creation
   Image image;
   image.create(vp.m_width, vp.m_height,32);
 
   //RandomEngine
   RandomEngine<REAL_TYPE> randomEngine;
-
 
   //Image processing
   for (int y = 0; y < vp.m_height; ++y)

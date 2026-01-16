@@ -10,7 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(HEADERS inc/Prerequisites.h
             inc/MathObjects.h
             inc/Image.h
-            inc/Audio.h)
+            inc/Audio.h
+            inc/tiny_obj_loader.h)
 
 set(SOURCES src/main.cpp
             src/Audio.cpp
