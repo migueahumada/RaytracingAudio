@@ -60,8 +60,8 @@ void audioProcesses()
 
   audio.butterworth(FilterType::LOWPASS, 800.0f);
   audio.butterworth(FilterType::HIGHPASS, 100.0f);
-  /*audio.biquad(FilterType::LOWPASS,800.0,0.707f);
-  audio.biquad(FilterType::HIGHPASS, 100.0, 0.707f);*/
+  audio.biquad(FilterType::LOWPASS,800.0,0.707f);
+  audio.biquad(FilterType::HIGHPASS, 100.0, 0.707f);
 
   audio.encode(OUTPATH);
 
@@ -71,18 +71,6 @@ void audioProcesses()
   newAudio.sine(0.5f, 440.0f);
   newAudio.encode(OUTPATH2);
 
-  /*
-  Image image;
-  image.decode(IMG_INPATH);
-
-  image.encode(IMG_OUTPATH);
-
-  Image image2;
-  image2.create(256, 256, 32);
-  image2.clearColor(Color(0, 0, 255, 255));
-  image2.encode("../rsc/OutImage2.bmp");
-
-  */
 }
 
 /*
@@ -114,10 +102,12 @@ class Scene
   Scene(const Light& light,
         const Vector<Plane>& planes,
         const Vector<Sphere>& spheres,
+        const Vector<Triangle>& triangles,
         const Vector3& eye = Vector3(0,0,0)) 
     : m_light(light),
       m_planes(planes),
       m_spheres(spheres),
+      m_triangles(triangles),
       m_eye(eye)
   {}
   
@@ -127,20 +117,58 @@ class Scene
   Light m_light;
   Vector<Plane> m_planes;
   Vector<Sphere> m_spheres;
+  Vector<Triangle> m_triangles;
   
 };
 
+bool RayTriangleIntersection(const Ray& ray, 
+                             const Triangle& tri, 
+                             REAL_TYPE& t,
+                             REAL_TYPE maxDepth)
+{
+  const Vector3 e1 = tri.v1 - tri.v0;
+  const Vector3 e2 = tri.v2 - tri.v0;
+  const Vector3 p = ray.direction.cross(e2);
+  const REAL_TYPE det = e1.dot(e2);
+
+  if (std::abs(det) < 0.0001)
+  {
+    return false;
+  }
+
+  const REAL_TYPE invDet = (REAL_TYPE)1.0/det;
+
+  const Vector3 tv = ray.position - tri.v0;
+  REAL_TYPE u = tv.dot(p) * invDet;
+
+  if (u < 0.0 || u > 1.0)
+  {
+    return false;
+  }
+
+  const Vector3 q = tv.cross(e1);
+  REAL_TYPE v = ray.direction.dot(q) * invDet;
+  if (v < 0.0f || u + v > 1.0f)
+  {
+    return false;
+  }
+
+  t = e2.dot(q) * invDet;
+  
+  return t >= 0.0 && t <= maxDepth;
 
 
-
+}
 
 IntersectionInfo findClosestIntersection(const Ray& ray,
-                                        const Vector<Sphere>& spheres)
+                                        const Vector<Sphere>& spheres,
+                                        const Vector<Plane>& planes,
+                                        const Vector<Triangle>& triangles)
 {
   IntersectionInfo intersectionInfo;
 
+  //---------------Sphere-------------
   int closestSphereIndex = 0;
-
   REAL_TYPE smallestSolutionSphere = 50000;
 
   size_t count = spheres.size();
@@ -151,8 +179,8 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
   {
     
     REAL_TYPE a = ray.direction.dot(ray.direction);
-    REAL_TYPE b = 2 * (ray.direction.dot(ray.position - spheres[i].m_center));
-    REAL_TYPE c = (ray.position - spheres[i].m_center).dot(ray.position - spheres[i].m_center) - spheres[i].m_radius * spheres[i].m_radius;
+    REAL_TYPE b = 2 * (ray.direction.dot(ray.position - spheres[i].center));
+    REAL_TYPE c = (ray.position - spheres[i].center).dot(ray.position - spheres[i].center) - spheres[i].m_radius * spheres[i].m_radius;
 
     REAL_TYPE discriminant = b * b - 4 * a * c;
 
@@ -180,8 +208,6 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
     }
   }
 
-  
-
   if (!solutions.empty())
   {
     REAL_TYPE tmp = solutions[0];
@@ -199,15 +225,114 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
     smallestSolutionSphere = solutions[j];
   }
 
-  if (smallestSolutionSphere < 50000)
+  //---------------Plane-------------
+  int closestPlaneIndex = 0;
+  REAL_TYPE smallestSolutionPlane = 50000;
+
+  count = planes.size();
+  solutions.clear();
+  index.clear();
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    REAL_TYPE a = (planes[i].point - ray.position).dot(planes[i].normal);
+    REAL_TYPE b = ray.direction.dot(planes[i].normal);
+    REAL_TYPE t = a / b;
+
+    if (t > 0.001 && t < 50000)
+    {
+      solutions.push_back(t);
+      index.push_back(i);
+    }
+  }
+
+  if (!solutions.empty())
+  {
+    REAL_TYPE tmp = solutions[0];
+    int j = 0;
+    for (size_t i = 0; i < solutions.size(); ++i)
+    {
+      if (solutions[i] < tmp)
+      {
+        tmp = solutions[i]; 
+        j = (int)i;
+      }
+    }
+
+    closestPlaneIndex = (int)index[j];
+    smallestSolutionPlane = solutions[j];
+  }
+
+  //--------------Triangle------------
+  int closestTriangleIndex = 0;
+  REAL_TYPE smallestSolutionTriangle = 50000;
+
+  count = triangles.size();
+  solutions.clear();
+  index.clear();
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    REAL_TYPE t;
+
+    if (RayTriangleIntersection(ray, triangles[i], t, 50000))
+    {
+      solutions.push_back(t);
+      index.push_back(i);
+    }
+    
+  }
+
+  if (!solutions.empty())
+  {
+    REAL_TYPE tmp = solutions[0];
+    int j = 0;
+    for (size_t i = 0; i < solutions.size(); ++i)
+    {
+      if (solutions[i] < tmp)
+      {
+        tmp = solutions[i];
+        j = (int)i;
+      }
+    }
+
+    closestTriangleIndex = (int)index[j];
+    smallestSolutionTriangle = solutions[j];
+  }
+
+  //------------DepthTestings----------
+
+
+
+  if (smallestSolutionPlane < smallestSolutionSphere && smallestSolutionPlane < smallestSolutionTriangle)
+  {
+    intersectionInfo.point = ray.where(smallestSolutionPlane);
+    intersectionInfo.normal = planes[closestPlaneIndex].normal;
+    intersectionInfo.color = planes[closestPlaneIndex].color;
+    intersectionInfo.kA = planes[closestPlaneIndex].coeffs.x;
+    intersectionInfo.kD = planes[closestPlaneIndex].coeffs.y;
+    intersectionInfo.kS = planes[closestPlaneIndex].coeffs.z;
+    intersectionInfo.type = ShapeType::kPlane;
+  }
+  else if(smallestSolutionSphere < smallestSolutionPlane && smallestSolutionSphere < smallestSolutionTriangle)
   {
     intersectionInfo.point = ray.where(smallestSolutionSphere);
-    intersectionInfo.normal = (intersectionInfo.point - spheres[closestSphereIndex].m_center).getNormalized();
-    intersectionInfo.color = spheres[closestSphereIndex].m_color;
-    intersectionInfo.kA = spheres[closestSphereIndex].m_coeffs.x;
-    intersectionInfo.kD = spheres[closestSphereIndex].m_coeffs.y;
-    intersectionInfo.kS = spheres[closestSphereIndex].m_coeffs.z;
+    intersectionInfo.normal = (intersectionInfo.point - spheres[closestSphereIndex].center).getNormalized();
+    intersectionInfo.color = spheres[closestSphereIndex].color;
+    intersectionInfo.kA = spheres[closestSphereIndex].coeffs.x;
+    intersectionInfo.kD = spheres[closestSphereIndex].coeffs.y;
+    intersectionInfo.kS = spheres[closestSphereIndex].coeffs.z;
     intersectionInfo.type = ShapeType::kSphere;
+  }
+  else if (smallestSolutionTriangle < smallestSolutionPlane && smallestSolutionTriangle < smallestSolutionSphere)
+  {
+    intersectionInfo.point = ray.where(smallestSolutionTriangle);
+    intersectionInfo.normal = triangles[closestTriangleIndex].normal;
+    intersectionInfo.color = triangles[closestTriangleIndex].color;
+    intersectionInfo.kA = triangles[closestTriangleIndex].coeffs.x;
+    intersectionInfo.kD = triangles[closestTriangleIndex].coeffs.y;
+    intersectionInfo.kS = triangles[closestTriangleIndex].coeffs.z;
+    intersectionInfo.type = ShapeType::kTriangle;
   }
   
 
@@ -218,6 +343,8 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
 Color calculateColor(const IntersectionInfo& info, 
                      const Light& light, 
                      const Vector<Sphere>& spheres,
+                     const Vector<Plane>& planes,
+                     const Vector<Triangle>& triangles,
                      const Vector3& currentDir)
 {
   Color result;
@@ -251,23 +378,23 @@ Color calculateColor(const IntersectionInfo& info,
 Color findColor(const Ray& ray,
                 const Vector<Sphere>& spheres,
                 const Vector<Plane>& planes,
+                const Vector<Triangle>& triangles,
                 const Light& light,
                 int maxDepth = 3)
 {
   Color colorResult(0, 0, 0);
-  Color noIntersection(255, 255, 255);
+  Color noIntersection(0, 0, 0);
   int depth = 0;
   Ray currentRay = ray;
-
   
   while (depth < maxDepth)
   {
-    IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres);
+    IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes,triangles);
 
     if (intersectionInfo.type != ShapeType::kEmpty)
     {
       depth = depth + 1;
-      colorResult = colorResult + calculateColor(intersectionInfo, light, spheres, currentRay.direction);
+      colorResult = colorResult + calculateColor(intersectionInfo, light, spheres, planes,triangles, currentRay.direction);
       Vector3 intersectionNormal = intersectionInfo.normal;
       currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
       currentRay.position = intersectionInfo.point;
@@ -301,7 +428,7 @@ int main()
 
   REAL_TYPE kA = (REAL_TYPE)0.3;
   REAL_TYPE kD = (REAL_TYPE)0.4;
-  REAL_TYPE kS = (REAL_TYPE)0.3;
+  REAL_TYPE kS = (REAL_TYPE)0.1;
 
   //Spheres
   Vector<Sphere> spheres;
@@ -322,7 +449,7 @@ int main()
   Plane wall2(norm2, point2, planeColor, kA, kD, kS);
   Plane wall3(norm3, point3, planeColor, kA, kD, kS);
   Plane floor(normal, point, planeColor, kA, kD, kS);
-
+  
   Vector<Plane> planes
   {
     floor,
@@ -330,6 +457,16 @@ int main()
     wall2,
     wall3
   };
+
+  //Triangles
+  Vector3 v0(30, 23, 100);
+  Vector3 v1(20, 12, 100);
+  Vector3 v2(13, 26, 100);
+  
+  Triangle triangle(v0,v1,v2, Vector3(0,0,255),kA,kD,kS);
+
+  Vector<Triangle> triangles;
+  triangles.push_back(triangle);
   
   //Lights
   Vector3 eye(0, 0, 0);
@@ -342,7 +479,7 @@ int main()
   Viewport vp(width, height);
 
   //Scene
-  Scene scene(light,planes,spheres,eye);
+  Scene scene(light, planes, spheres, triangles, eye);
 
   //Image creation
   Image image;
@@ -368,7 +505,7 @@ int main()
         Vector3 pixel = vp.m_upperLeftCorner + tmpPixel;
 
         Ray currentRay(scene.m_eye, pixel - scene.m_eye);
-        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_light, 3);
+        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, 1);
       }
       Color_BMP colorbmp;
 

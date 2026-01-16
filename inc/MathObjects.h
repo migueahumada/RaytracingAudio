@@ -129,7 +129,7 @@ class Plane_T
           const Vector3_T<Real>& color,
           Real kA, Real kD, Real kS) 
             : point(point),
-              normal(point.getNormalized()),
+              normal(normal.getNormalized()),
               color(color),
               coeffs(kA,kD,kS)
   {}
@@ -210,17 +210,64 @@ class Sphere_T
            Real kA,
            Real kD,
            Real kS) 
-   : m_center(center),
+   : center(center),
      m_radius(radius),
-     m_color(color),
-     m_coeffs(kA,kD,kS){}
+     color(color),
+     coeffs(kA,kD,kS){}
 
  public:
-  Vector3_T<Real> m_center;
-  Vector3_T<Real> m_color;
-  Vector3_T<Real> m_coeffs;
+  Vector3_T<Real> center;
+  Vector3_T<Real> color;
+  Vector3_T<Real> coeffs;
   Real m_radius = 0;
 
+};
+
+template <typename Real>
+class Triangle_T
+{
+ public:
+  Triangle_T() = default;
+  Triangle_T(const Vector3_T<Real>& v0,
+             const Vector3_T<Real>& v1,
+             const Vector3_T<Real>& v2,
+             const Vector3_T<Real>& color,
+             Real kA, Real kD, Real kS) 
+    : v0(v0), v1(v1), v2(v2),
+      normal((v1 - v0).getNormalized().cross((v2 - v0).getNormalized())),
+      color(color),
+      coeffs(kA, kD, kS),
+      centroid((v0 + v1 + v0) / Real(3))
+  {}
+
+  bool isInside(const Vector3_T<Real>& point)
+  {
+    if (((v1 - v0).cross((point - v0))).dot((v1 - v0).cross((centroid - v0))) < 0.0000001)
+    {
+      return false;
+    }
+
+    if (((v2 - v0).cross((point - v0))).dot((v2 - v0).cross((centroid - v0))) < 0.0000001)
+    {
+      return false;
+    }
+
+    if (((v1 - v2).cross((point - v2))).dot((v1 - v2).cross((centroid - v2))) < 0.0000001)
+    {
+      return false;
+    }
+
+    return true;
+  }
+  
+  Vector3_T<Real> v0;
+  Vector3_T<Real> v1;
+  Vector3_T<Real> v2;
+  Vector3_T<Real> normal;
+  Vector3_T<Real> color;
+  Vector3_T<Real> coeffs;
+  Vector3_T<Real> centroid;
+  
 };
 
 template<typename Real>
@@ -251,5 +298,6 @@ using Color = Vector3_T<REAL_TYPE>;
 using Ray = Ray_T<REAL_TYPE>;
 using Plane = Plane_T<REAL_TYPE>;
 using Light = Light_T<REAL_TYPE>;
+using Triangle = Triangle_T<REAL_TYPE>;
 using Sphere = Sphere_T<REAL_TYPE>;
 
