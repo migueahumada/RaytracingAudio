@@ -28,8 +28,6 @@
   #define OUTPATH2  "../../rsc/out3.wav"
 #endif
 
-
-
 namespace ShapeType
 {
   enum E {
@@ -306,9 +304,6 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
   }
 
   //------------DepthTestings----------
-
-
-
   if (smallestSolutionPlane < smallestSolutionSphere && smallestSolutionPlane < smallestSolutionTriangle)
   {
     intersectionInfo.point = ray.where(smallestSolutionPlane);
@@ -468,7 +463,7 @@ int main()
   Vector3 v1(20, 12, 100);
   Vector3 v2(13, 26, 100);
   
-  Triangle triangle(v0,v1,v2, Vector3(0,0,255),kA,kD,kS);
+  Triangle triangle(v0,v1,v2, Vector3(0,255,255),kA,kD,kS);
 
   Vector<Triangle> triangles;
   triangles.push_back(triangle);
@@ -493,7 +488,54 @@ int main()
     scene.m_triangles.push_back(cube.triangles[i]);
   }
 
+  class Vertex {
+  public:
+      Vector3 position;
+    Vector3 normal;
+    Vector3 texCoord;
+  };
   
+  tinyobj::attrib_t attributes;
+  Vector<tinyobj::shape_t> shapes;
+  Vector<tinyobj::material_t> material;
+  String err;
+  String fileName = "/Users/miko/Downloads/stanford-bunny.obj";
+  
+  tinyobj::LoadObj(&attributes, &shapes, &material, &err, fileName.c_str(), nullptr, true);
+  
+
+  std::vector<Vertex> vertices;
+  for (int i = 0; i < shapes.size(); i ++) {
+      tinyobj::shape_t &shape = shapes[i];
+    
+      tinyobj::mesh_t &mesh = shape.mesh;
+      for (int j = 0; j < mesh.indices.size(); j++) {
+          tinyobj::index_t i = mesh.indices[j];
+          Vector3 position = {
+              attributes.vertices[i.vertex_index * 3],
+              attributes.vertices[i.vertex_index * 3 + 1],
+              attributes.vertices[i.vertex_index * 3 + 2]
+          };
+          Vector3 normal = {
+              attributes.vertices[i.normal_index * 3],
+              attributes.vertices[i.normal_index * 3 + 1],
+              attributes.vertices[i.normal_index * 3 + 2]
+          };
+          
+          Vertex vert = { position, normal};
+          vertices.push_back(vert);
+      }
+  }
+  
+  for (int i = 0; i < vertices.size(); i+=3) {
+    
+    Vector3 offset(0,0,60);
+    Triangle tri(vertices[i].position + offset,
+                 vertices[i + 1].position + offset,
+                 vertices[i +2].position + offset,
+                 {255,255,0},kA, kD,kS);
+    scene.m_triangles.push_back(tri);
+  }
   
 
   //Image creation

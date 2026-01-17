@@ -18,7 +18,7 @@ public:
 
   Real getNumber()
   {
-    std::uniform_real<Real> distribution{ 0,1 };
+    std::uniform_real_distribution<Real> distribution{ 0,1 };
 
     return distribution(mt);
 
@@ -48,4 +48,5 @@ using Array = std::array<T, N>;
 
 template<class T>
 using Vector = std::vector<T>;
+
 
