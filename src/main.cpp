@@ -139,7 +139,9 @@ bool RayTriangleIntersection(const Ray& ray,
   const Vector3 p = ray.direction.cross(e2);
   const REAL_TYPE det = e1.dot(p);
 
-  if (std::abs(det) < 0.0000001)
+  REAL_TYPE epsilon = 1e-8;
+
+  if (std::abs(det) < epsilon)
   {
     return false;
   }
@@ -156,14 +158,14 @@ bool RayTriangleIntersection(const Ray& ray,
 
   const Vector3 q = tv.cross(e1);
   REAL_TYPE v = ray.direction.dot(q) * invDet;
-  if (v < 0.0f || u + v > 1.0f)
+  if (v < epsilon || u + v > 1.0f)
   {
     return false;
   }
 
   t = e2.dot(q) * invDet;
   
-  return t >= 0.000001 && t <= maxDepth;
+  return t >= epsilon && t <= maxDepth;
 
 
 }
@@ -498,6 +500,7 @@ int main()
   for (size_t s = 0; s < shapes.size(); s++) {
     // Loop over faces(polygon)
     size_t index_offset = 0;
+
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
       size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
@@ -535,7 +538,6 @@ int main()
       index_offset += fv;
     }
   }
-
 
   //Image creation
   Image image;

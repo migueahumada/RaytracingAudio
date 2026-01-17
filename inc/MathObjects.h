@@ -288,7 +288,7 @@ class Light_T
   Real ambientIntensity;
 };
 
-#define REAL_TYPE float
+#define REAL_TYPE double
 
 using Vector3 = Vector3_T<REAL_TYPE>;
 using Color = Vector3_T<REAL_TYPE>;
