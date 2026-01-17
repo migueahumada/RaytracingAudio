@@ -12,7 +12,8 @@
   #define IMG_INPATH "../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../rsc/OutImage.bmp"
 
-  #define MODEL_PATH "../rsc/stanford-bunny.obj"
+  #define MODEL_INPATH "../rsc/chango.obj"
+
 #endif
 
 #ifdef __APPLE__
@@ -136,9 +137,9 @@ bool RayTriangleIntersection(const Ray& ray,
   const Vector3 e1 = tri.v1 - tri.v0;
   const Vector3 e2 = tri.v2 - tri.v0;
   const Vector3 p = ray.direction.cross(e2);
-  const REAL_TYPE det = e1.dot(e2);
+  const REAL_TYPE det = e1.dot(p);
 
-  if (std::abs(det) < 0.0001)
+  if (std::abs(det) < 0.0000001)
   {
     return false;
   }
@@ -162,7 +163,7 @@ bool RayTriangleIntersection(const Ray& ray,
 
   t = e2.dot(q) * invDet;
   
-  return t >= 0.0 && t <= maxDepth;
+  return t >= 0.000001 && t <= maxDepth;
 
 
 }
@@ -432,7 +433,7 @@ int main()
 
   REAL_TYPE kA = (REAL_TYPE)0.3;
   REAL_TYPE kD = (REAL_TYPE)0.4;
-  REAL_TYPE kS = (REAL_TYPE)0.1;
+  REAL_TYPE kS = (REAL_TYPE)0.6;
 
   //Spheres
   Vector<Sphere> spheres;
@@ -484,63 +485,57 @@ int main()
 
   //Scene
   Scene scene(light, planes, spheres, triangles, eye);
-
-  //Cube
-  Cube cube({ 30, 9, 100 }, 30, {255,0,0}, {kA,kD,kS});
-  for (size_t i = 0; i < cube.triangles.size(); ++i)
-  {
-    scene.m_triangles.push_back(cube.triangles[i]);
-  }
-
-  class Vertex {
-  public:
-      Vector3 position;
-    Vector3 normal;
-    Vector3 texCoord;
-  };
   
-  tinyobj::attrib_t attributes;
+  tinyobj::attrib_t attrib;
   Vector<tinyobj::shape_t> shapes;
   Vector<tinyobj::material_t> material;
   String err;
-  String fileName = "/Users/miko/Downloads/stanford-bunny.obj";
+  String fileName = MODEL_INPATH;
   
-  tinyobj::LoadObj(&attributes, &shapes, &material, &err, fileName.c_str(), nullptr, true);
-  
+  tinyobj::LoadObj(&attrib, &shapes, nullptr, &err, fileName.c_str(), nullptr, true);
 
-  std::vector<Vertex> vertices;
-  for (int i = 0; i < shapes.size(); i ++) {
-      tinyobj::shape_t &shape = shapes[i];
-    
-      tinyobj::mesh_t &mesh = shape.mesh;
-      for (int j = 0; j < mesh.indices.size(); j++) {
-          tinyobj::index_t i = mesh.indices[j];
-          Vector3 position = {
-              attributes.vertices[i.vertex_index * 3],
-              attributes.vertices[i.vertex_index * 3 + 1],
-              attributes.vertices[i.vertex_index * 3 + 2]
-          };
-          Vector3 normal = {
-              attributes.vertices[i.normal_index * 3],
-              attributes.vertices[i.normal_index * 3 + 1],
-              attributes.vertices[i.normal_index * 3 + 2]
-          };
-          
-          Vertex vert = { position, normal};
-          vertices.push_back(vert);
+  // Loop over shapes
+  for (size_t s = 0; s < shapes.size(); s++) {
+    // Loop over faces(polygon)
+    size_t index_offset = 0;
+    for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+      Vector3 v0, v1, v2;
+
+      // Loop over vertices in the face.
+      for (size_t v = 0; v < fv; v++) {
+        // access to vertex
+        tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+
+        tinyobj::real_t x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+        tinyobj::real_t y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+        tinyobj::real_t z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+        
+        if (v == 0)
+        {
+          v0 = Vector3(x, y, z);
+        }
+        if (v == 1)
+        {
+          v1 = Vector3(x, y, z);
+        }
+        if (v == 2)
+        {
+          v2 = Vector3(x, y, z);
+        }
       }
+      
+      Vector3 offset(0,0,60);
+      scene.m_triangles.emplace_back(Triangle((v0*20) + offset , 
+                                              (v1*20) + offset ,
+                                              (v2*20) + offset , 
+                                              { 255,255,0 }, kA, kD, kS));
+
+      index_offset += fv;
+    }
   }
-  
-  for (int i = 0; i < vertices.size(); i+=3) {
-    
-    Vector3 offset(0,0,60);
-    Triangle tri(vertices[i].position + offset,
-                 vertices[i + 1].position + offset,
-                 vertices[i +2].position + offset,
-                 {255,255,0},kA, kD,kS);
-    scene.m_triangles.push_back(tri);
-  }
-  
+
 
   //Image creation
   Image image;
@@ -565,7 +560,7 @@ int main()
         Vector3 pixel = vp.m_upperLeftCorner + tmpPixel;
 
         Ray currentRay(scene.m_eye, pixel - scene.m_eye);
-        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, 1);
+        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, 2);
       }
       Color_BMP colorbmp;
 
@@ -577,7 +572,7 @@ int main()
     }
   }
   
-  image.encode("raytracer.bmp");
+  image.encode(IMG_OUTPATH);
 
   return 0;
 }

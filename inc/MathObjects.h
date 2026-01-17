@@ -234,10 +234,10 @@ class Triangle_T
              const Vector3_T<Real>& color,
              Real kA, Real kD, Real kS) 
     : v0(v0), v1(v1), v2(v2),
-      normal((v1 - v0).getNormalized().cross((v2 - v0).getNormalized())),
+      normal((v1 - v0).cross(v2 - v0).getNormalized()),
       color(color),
       coeffs(kA, kD, kS),
-      centroid((v0 + v1 + v0) / Real(3))
+      centroid((v0 + v1 + v2) / Real(3))
   {}
 
   bool isInside(const Vector3_T<Real>& point)
@@ -269,69 +269,6 @@ class Triangle_T
   Vector3_T<Real> centroid;
   
 };
-/*
-  v -0.589408 21.789948 -2.680049
-  v -1.148603 19.983482 -2.028913
-  v -0.781954 21.167933 -4.571087
-  v -1.341149 19.361465 -3.919950
-  v 1.321149 21.198532 -2.680049
-  v 0.761954 19.392065 -2.028913
-  v 1.128603 20.576515 -4.571087
-  v 0.569408 18.770050 -3.919950
-*/
-
-
-
-template<typename Real>
-class Cube_T
-{
- public:
-  Cube_T(const Vector3_T<Real>& position,
-         Real scale,
-         const Vector3_T<Real>& color, 
-         const Vector3_T<Real>& coeffs) 
-         : position(position),
-           scale(scale),
-           color(color), 
-           coeffs(coeffs)
-  {
-    setTriangles();
-  }
-
-  void setTriangles()
-  {
-    Vector3_T<Real> v1(0, 23, 100);
-    Vector3_T<Real> v2(0, 12, 100);
-    Vector3_T<Real> v3(3, 26, 100);
-    /*Vector3_T<Real> v4();
-    Vector3_T<Real> v5();
-    Vector3_T<Real> v6();
-    Vector3_T<Real> v7();
-    Vector3_T<Real> v8();*/
-    
-    //513
-    //
-    triangles.emplace_back(Triangle_T<Real> (v1, v2, v3,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v3, v8, v4,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v7, v6, v8,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v2, v8, v6,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v1, v4, v2,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v5, v2, v6,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v5, v7, v3,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v3, v7, v8,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v7, v5, v6,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v2, v4, v8,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v1, v3, v4,  color, coeffs.x, coeffs.y, coeffs.z));
-    //triangles.emplace_back(Triangle_T<Real> (v5, v1, v2,  color, coeffs.x, coeffs.y, coeffs.z));
-  
-    
-  }
-  Vector3_T<Real> position;
-  Real scale;
-  Vector3_T<Real> color;
-  Vector3_T<Real> coeffs;
-  Vector<Triangle_T<Real>> triangles;
-};
 
 template<typename Real>
 class Light_T 
@@ -360,4 +297,4 @@ using Plane = Plane_T<REAL_TYPE>;
 using Light = Light_T<REAL_TYPE>;
 using Triangle = Triangle_T<REAL_TYPE>;
 using Sphere = Sphere_T<REAL_TYPE>;
-using Cube = Cube_T<REAL_TYPE>;
+
