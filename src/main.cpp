@@ -11,6 +11,8 @@
 
   #define IMG_INPATH "../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../rsc/OutImage.bmp"
+
+  #define MODEL_PATH "../rsc/stanford-bunny.obj"
 #endif
 
 #ifdef __APPLE__
@@ -20,6 +22,8 @@
 
   #define IMG_INPATH "../../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../../rsc/OutImage.bmp"
+
+  #define MODEL_PATH "../../rsc/stanford-bunny.obj"
 #endif
 
 #ifdef __UNIX__
