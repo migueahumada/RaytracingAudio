@@ -43,6 +43,17 @@ namespace ShapeType
     kPolygon
   };
 }
+// TODO:
+// https://easings.net/
+//Canal de una textura
+// 0 - 1
+//Poner un lambda para cambiar la interpolación
+// Callback y lambda
+struct AudioProperties
+{
+  
+  REAL_TYPE reflectionCoeff {0.5};
+};
 
 struct IntersectionInfo
 {
@@ -54,9 +65,11 @@ struct IntersectionInfo
   REAL_TYPE kD{ 0 };
   REAL_TYPE kS{ 0 };
   ShapeType::E type{ ShapeType::kEmpty };
-
+  AudioProperties audioProperties;
 
 };
+
+
 
 
 
@@ -139,7 +152,8 @@ bool RayTriangleIntersection(const Ray& ray,
   const Vector3 p = ray.direction.cross(e2);
   const REAL_TYPE det = e1.dot(p);
 
-  REAL_TYPE epsilon = 1e-8;
+  REAL_TYPE epsilon = EPSILON;
+  //Definicion de 
 
   if (std::abs(det) < epsilon)
   {
@@ -401,7 +415,12 @@ Color findColor(const Ray& ray,
     if (intersectionInfo.type != ShapeType::kEmpty)
     {
       depth = depth + 1;
+
       colorResult = colorResult + calculateColor(intersectionInfo, light, spheres, planes,triangles, currentRay.direction);
+      
+      //sound = direct + sumOfReflectedSound (global sound)
+      //soundResult = soundResult + calculatSound();
+
       Vector3 intersectionNormal = intersectionInfo.normal;
       currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
       currentRay.position = intersectionInfo.point;

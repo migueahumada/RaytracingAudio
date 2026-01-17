@@ -288,7 +288,18 @@ class Light_T
   Real ambientIntensity;
 };
 
-#define REAL_TYPE double
+
+
+
+#define PRECISSION_TYPE 1
+
+#if PRECISSION_TYPE == 0
+  #define REAL_TYPE float
+  #define EPSILON 1e-6  
+#else 
+  #define REAL_TYPE double
+  #define EPSILON 1e-8  
+#endif
 
 using Vector3 = Vector3_T<REAL_TYPE>;
 using Color = Vector3_T<REAL_TYPE>;
