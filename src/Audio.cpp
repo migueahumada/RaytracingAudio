@@ -42,6 +42,69 @@ void Audio::create(uint32 sampleRate,
   memset(m_data,0,dataSize);
 }
 
+
+void Audio::create(AudioBuffer& audioBuffer)
+{
+  m_sampleRate = audioBuffer.m_sampleRate;
+  m_bitsPerSample = audioBuffer.m_bitDepth;
+  m_numChannels = audioBuffer.m_channels;
+
+  m_dataSize = audioBuffer.m_samples.size() * m_bitsPerSample >> 3;
+
+  const int dataSize = m_dataSize;
+
+  m_data = new uint8[dataSize];
+
+  memset(m_data, 0, dataSize);
+
+  Vector<uint8> vRawData;
+
+  for (size_t i = 0; i < audioBuffer.m_samples.size(); ++i)
+  {
+    if (audioBuffer.m_bitDepth == 8)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int16 intSample = floatSample * std::numeric_limits<int16>::max();
+
+      vRawData.push_back(intSample);
+
+    }
+
+    if (audioBuffer.m_bitDepth == 16)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int16 intSample = floatSample * std::numeric_limits<int16>::max();
+      
+      uint8 arr[2];
+
+      memcpy(&arr,&intSample,2);
+    
+      vRawData.push_back(arr[0]);
+      vRawData.push_back(arr[1]);
+     
+    }
+
+    if (audioBuffer.m_bitDepth == 32)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int16 intSample = floatSample * std::numeric_limits<int16>::max();
+
+      uint8 arr[3];
+
+      memcpy(&arr, &intSample, 3);
+
+      vRawData.push_back(arr[0]);
+      vRawData.push_back(arr[1]);
+      vRawData.push_back(arr[2]);
+    }
+  }
+
+  memcpy(*&m_data, vRawData.data(), vRawData.size());
+}
+
 void Audio::decode(const String& filePath)
 {
   std::fstream file(filePath, std::ios::binary | std::ios::in);
@@ -203,6 +266,19 @@ void Audio::processAudio()
   }
 
   
+}
+
+void Audio::setVolume(float newVolume)
+{
+  for (size_t frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (size_t channel = 0; channel < getNumChannels(); ++channel)
+    {
+      float inSample = getFrameSample(channel, frame);
+      setFrameSample(channel, frame, inSample * newVolume);
+    }
+  }
+  m_volume = newVolume;
 }
 
 void Audio::sine(float amp,

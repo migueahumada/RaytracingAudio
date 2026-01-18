@@ -11,7 +11,8 @@ set(HEADERS inc/Prerequisites.h
             inc/MathObjects.h
             inc/Image.h
             inc/Audio.h
-            inc/Model.h
+            inc/RaytracingHelpers.h
+            inc/AudioHelpers.h
             inc/tiny_obj_loader.h)
 
 set(SOURCES src/main.cpp
