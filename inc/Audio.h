@@ -20,14 +20,21 @@
 *          --- --- --- --- --- ---
 *           ^
 *           L channel
- 
-  - Data -> array of bytes.
-  - Sample -> the normalization of the data.
-  - Frame -> a container of samples which size is the number of channels.
-  
-
-  Formulas:
-   Duration = channels * sampleRate * bitdepth
+*
+* - Data -> array of bytes.
+* - Sample -> the normalization of the data.
+* - Frame -> a container of samples which size is the number of channels.
+* 
+*
+* Formulas:
+*  Duration = channels * sampleRate * bitdepth
+*
+*  Samples = sampleRate * channels * duration(s);
+*
+*  NumBytes = numSamples * bytesPerSample;
+*
+*  DataSize = sampleRate * channels * duration
+*
 */
 
 class AudioBuffer;
@@ -105,7 +112,7 @@ class Audio
   }
 
   NODISCARD
-  inline const size_t getSampleRate() const
+  inline const uint32 getSampleRate() const
   {
     return m_sampleRate;
   }
@@ -114,13 +121,13 @@ class Audio
     Gets the frame Sample value in floats
   */
   NODISCARD
-  float getFrameSample(int channelIndex, int frameIndex);
+  float getFrameSample(uint32 channelIndex, uint32 frameIndex);
 
   /**
     Sets the frame sample value as a float
   */
-  void setFrameSample(int channelIndex,
-                      int frameIndex,
+  void setFrameSample(uint32 channelIndex,
+                      uint32 frameIndex,
                       float sampleValue); 
   
   void processAudio();
@@ -173,29 +180,14 @@ private:
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
 
-  size_t m_dataSize = 0;
-  uint32 m_sampleRate = 0;
-  uint16 m_bitsPerSample = 0;
-  uint16 m_numChannels = 0;
-  float m_volume = 1.0f;
-
-  uint8* m_data = nullptr;
-  
+  size_t m_dataSize {0};
+  uint32 m_sampleRate {0};
+  uint16 m_bitsPerSample {0};
+  uint16 m_numChannels {0};
+  uint8* m_data {nullptr};
+  float m_volume {1.0f};
   
 };
 #pragma pack(pop)
 
-
-
-/*
-* 
-* 
-* Samples = sampleRate * channels * duration(s);
-* 
-* 
-* 
-* NumBytes = numSamples * bytesPerSample;
-* 
-* DataSize = sampleRate * channels * duration
-**/
 

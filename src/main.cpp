@@ -47,6 +47,9 @@ static const int height = 1080;
 
 static const int AASamples = 1;
 
+static constexpr REAL_TYPE kA = (REAL_TYPE)0.5;
+static constexpr REAL_TYPE kD = (REAL_TYPE)0.4;
+static constexpr REAL_TYPE kS = (REAL_TYPE)0.7;
 
 void audioProcesses()
 {
@@ -106,6 +109,54 @@ class Scene
       m_triangles(triangles),
       m_eye(eye)
   {}
+
+  template<typename Real>
+  void AddModelTriangles(const tinyobj::attrib_t& attrib,
+                         const Vector<tinyobj::shape_t>& shapes,
+                         Real kA, Real kD, Real kS)
+  {
+    for (size_t s = 0; s < shapes.size(); s++) {
+      // Loop over faces(polygon)
+      size_t index_offset = 0;
+
+      for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+        size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+        Vector3 v0, v1, v2;
+
+        // Loop over vertices in the face.
+        for (size_t v = 0; v < fv; v++) {
+          // access to vertex
+          tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+
+          tinyobj::real_t x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+          tinyobj::real_t y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+          tinyobj::real_t z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+
+          if (v == 0)
+          {
+            v0 = Vector3(x, y, z);
+          }
+          if (v == 1)
+          {
+            v1 = Vector3(x, y, z);
+          }
+          if (v == 2)
+          {
+            v2 = Vector3(x, y, z);
+          }
+        }
+
+        Vector3 offset(0, 0, 60);
+          m_triangles.emplace_back(Triangle((v0 * 20) + offset,
+          (v1 * 20) + offset,
+          (v2 * 20) + offset,
+          { 255,255,0 }, kA, kD, kS));
+
+        index_offset += fv;
+      }
+    }
+  }
   
  public:
 
@@ -384,18 +435,16 @@ int main()
 {
   
 
-  REAL_TYPE kA = (REAL_TYPE)0.3;
-  REAL_TYPE kD = (REAL_TYPE)0.4;
-  REAL_TYPE kS = (REAL_TYPE)0.6;
+
 
   //Spheres
   Vector<Sphere> spheres;
 
-  spheres.emplace_back(Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
 
   //Planes (Room)
   Vector3 norm1(-5, 0, -4), point1(1300, 500, 500), planeColor(230, 182, 200);
@@ -448,47 +497,8 @@ int main()
   tinyobj::LoadObj(&attrib, &shapes, nullptr, &err, fileName.c_str(), nullptr, true);
 
   // Loop over shapes
-  for (size_t s = 0; s < shapes.size(); s++) {
-    // Loop over faces(polygon)
-    size_t index_offset = 0;
-
-    for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
-
-      Vector3 v0, v1, v2;
-
-      // Loop over vertices in the face.
-      for (size_t v = 0; v < fv; v++) {
-        // access to vertex
-        tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-
-        tinyobj::real_t x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-        tinyobj::real_t y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-        tinyobj::real_t z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
-        
-        if (v == 0)
-        {
-          v0 = Vector3(x, y, z);
-        }
-        if (v == 1)
-        {
-          v1 = Vector3(x, y, z);
-        }
-        if (v == 2)
-        {
-          v2 = Vector3(x, y, z);
-        }
-      }
-      
-      Vector3 offset(0,0,60);
-      scene.m_triangles.emplace_back(Triangle((v0*20) + offset , 
-                                              (v1*20) + offset ,
-                                              (v2*20) + offset , 
-                                              { 255,255,0 }, kA, kD, kS));
-
-      index_offset += fv;
-    }
-  }
+  
+  scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
 
   //Image creation
   Image image;
@@ -512,12 +522,21 @@ int main()
   sumAudio.create(sumBuff);
   sumAudio.encode("../rsc/SumTest.wav");
 
+  sumBuff.setTimeOffset(13.0f);
+
+  Audio offsetAudio;
+  offsetAudio.create(sumBuff);
+  offsetAudio.encode("../rsc/OffsetAudio.wav");
+
+
+
   //Image processing
   for (int y = 0; y < vp.m_height; ++y)
   {
     for (int x = 0; x < vp.m_width; ++x)
     {
       Color pixelColor;
+      
 
       for (size_t j = 1; j <= AASamples; ++j)
       {
@@ -529,6 +548,7 @@ int main()
 
         Ray currentRay(scene.m_eye, pixel - scene.m_eye);
         pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, 2);
+
       }
       Color_BMP colorbmp;
 

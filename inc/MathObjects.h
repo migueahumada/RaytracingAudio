@@ -290,12 +290,11 @@ class Light_T
 
 
 
+#define PRECISION_TYPE 0
 
-#define PRECISSION_TYPE 1
-
-#if PRECISSION_TYPE == 0
+#if PRECISION_TYPE == 0
   #define REAL_TYPE float
-  #define EPSILON 1e-6  
+  #define EPSILON 1e-4  
 #else 
   #define REAL_TYPE double
   #define EPSILON 1e-8  

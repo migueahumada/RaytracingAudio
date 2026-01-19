@@ -2,8 +2,6 @@
 #include "Prerequisites.h"
 #include "MathObjects.h"
 
-
-
 namespace FilterType
 {
   enum E {
@@ -54,7 +52,7 @@ struct DATA_SUBCHUNK
 };
 
 /**
- The header
+ The WAVE header
  */
 struct WAVE_HEADER
 {
