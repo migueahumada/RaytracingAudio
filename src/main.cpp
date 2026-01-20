@@ -5,7 +5,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-#include "ComputeAPI.h"
+//#include "ComputeAPI.h"
 
 #ifdef _WIN32
   #define INPATH "../rsc/SoundFile_01.wav"

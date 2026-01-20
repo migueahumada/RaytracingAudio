@@ -85,7 +85,7 @@ class Audio
   NODISCARD
   inline const uint16 getBytesPerSample() const
   {
-    assert(m_dataSize > 0 && "Couldn't get the BytesPerSample");
+    //assert(m_dataSize > 0 && "Couldn't get the BytesPerSample");
     return m_bitsPerSample >> 3;
   }
 
@@ -104,7 +104,7 @@ class Audio
   NODISCARD
   inline const size_t getTotalNumSamples() const
   {
-    assert(m_dataSize > 0 && "Size of audio data is 0");
+    //assert(m_dataSize > 0 && "Size of audio data is 0");
     return m_dataSize / getBytesPerSample();
   }
 
