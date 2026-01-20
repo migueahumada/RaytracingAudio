@@ -5,17 +5,13 @@ project(RaytracingTests)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SOURCES src/main.cpp)
+set(SOURCES ../src/Audio.cpp
+            src/main.cpp)
 
-set(HEADERS inc/Audio.h)
+set(HEADERS ../inc/Audio.h)
 
-add_executable(RaytracingTests
-    src/main.cpp
-)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-target_include_directories(RaytracingTests
-    PUBLIC
-        ../inc
-)
+target_include_directories(${PROJECT_NAME} PUBLIC ../inc )
 
 

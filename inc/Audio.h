@@ -4,6 +4,7 @@
 #include "AudioHelpers.h"
 #include "AudioBuffer.h"
 #include <fstream>
+#include <cassert>
 
 /*
 * Size of the frame.
@@ -81,6 +82,7 @@ class Audio
   NODISCARD
   inline const uint16 getBytesPerSample() const
   {
+    assert(m_dataSize > 0 && "Couldn't get the BytesPerSample");
     return m_bitsPerSample >> 3;
   }
 
@@ -99,6 +101,7 @@ class Audio
   NODISCARD
   inline const size_t getTotalNumSamples() const
   {
+    assert(m_dataSize > 0 && "Size of audio data is 0");
     return m_dataSize / getBytesPerSample();
   }
 
@@ -108,6 +111,7 @@ class Audio
   NODISCARD
   inline const size_t getTotalNumFrames() const
   {
+     assert(m_dataSize > 0 && "Couldn't get the TotalNumFrames.");
      return getTotalNumSamples() / m_numChannels;
   }
 
@@ -186,6 +190,7 @@ private:
   uint16 m_numChannels {0};
   uint8* m_data {nullptr};
   float m_volume {1.0f};
+  
   
 };
 #pragma pack(pop)

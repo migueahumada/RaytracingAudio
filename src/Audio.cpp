@@ -1,5 +1,5 @@
 #include "Audio.h"
-#include <assert.h>
+
 #include <limits>
 #include <iostream>
 #include <cmath>
