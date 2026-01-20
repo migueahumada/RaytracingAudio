@@ -13,11 +13,15 @@ set(HEADERS inc/Prerequisites.h
             inc/Audio.h
             inc/RaytracingHelpers.h
             inc/AudioHelpers.h
+            inc/DelayLine.h
+            inc/AudioBuffer.h
             inc/tiny_obj_loader.h)
 
 set(SOURCES src/main.cpp
             src/Audio.cpp
-            src/Image.cpp)
+            src/Image.cpp
+            src/DelayLine.cpp
+            src/AudioBuffer.cpp)
 
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})

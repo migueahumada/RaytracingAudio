@@ -46,6 +46,15 @@ AudioBuffer AudioBuffer::operator+(const AudioBuffer& other)
   return resultBuffer;
 }
 
+
+void AudioBuffer::scale(float scalar)
+{
+  for (size_t i = 0; i < m_samples.size(); i++)
+  {
+    m_samples[i] *= scalar;
+  }
+}
+
 AudioBuffer AudioBuffer::sum(const AudioBuffer& other)
 {
   AudioBuffer tmpBuffer = other;
@@ -85,22 +94,41 @@ AudioBuffer AudioBuffer::sum(const AudioBuffer& other)
 * 
 * 0.001s * 48000samp / 1s = 48 samp
 */
-void AudioBuffer::setTimeOffset(float timeInMilliseconds)
+AudioBuffer AudioBuffer::getAudioBuferWithTimeOffset(float timeInMilliseconds)
 {
   //Calculate the samples offset
   float timeInSeconds = timeInMilliseconds * 0.001f;
   int32 samplesToOffset = static_cast<int32>(timeInSeconds * m_sampleRate * m_channels);
 
-  Vector<float> tmpBuffer;
+  AudioBuffer tmpBuffer = *this;
+  tmpBuffer.m_samples.clear();
   
+  tmpBuffer.m_samples.resize(m_samples.size() + samplesToOffset);
+
+  for (size_t i = 0; i < m_samples.size(); ++i)
+  {
+    tmpBuffer.m_samples[i+samplesToOffset] = m_samples[i];
+  }
+
+  return tmpBuffer;
+
+
+}
+
+void AudioBuffer::setTimeOffset(float timeInMilliseconds)
+{
+  float timeInSeconds = timeInMilliseconds * 0.001f;
+  int32 samplesToOffset = static_cast<int32>(timeInSeconds * m_sampleRate * m_channels);
+
+  Vector<float> tmpBuffer;
+
   tmpBuffer.resize(m_samples.size() + samplesToOffset);
 
   for (size_t i = 0; i < m_samples.size(); ++i)
   {
-    tmpBuffer[i+samplesToOffset] = m_samples[i];
+    tmpBuffer[i + samplesToOffset] = m_samples[i];
   }
 
   m_samples = tmpBuffer;
-
-
+  
 }

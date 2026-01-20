@@ -15,10 +15,14 @@ class AudioBuffer
   AudioBuffer(Audio& audio);
 
   AudioBuffer operator+(const AudioBuffer& other);
-  AudioBuffer sum(const AudioBuffer& other);
-
-  void setTimeOffset(float timeInMilliseconds);
   
+  void scale(float scalar);
+
+  AudioBuffer sum(const AudioBuffer& other);
+  
+  AudioBuffer getAudioBuferWithTimeOffset(float timeInMilliseconds);
+  
+  void setTimeOffset(float timeInMilliseconds);
 
  public:
   Vector<float> m_samples;

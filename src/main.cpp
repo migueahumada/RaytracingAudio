@@ -387,6 +387,7 @@ Color findColor(const Ray& ray,
                 const Vector<Plane>& planes,
                 const Vector<Triangle>& triangles,
                 const Light& light,
+                AudioBuffer& audioBuffer,
                 int maxDepth = 3)
 {
   Color colorResult(0, 0, 0);
@@ -403,6 +404,8 @@ Color findColor(const Ray& ray,
       depth = depth + 1;
 
       colorResult = colorResult + calculateColor(intersectionInfo, light, spheres, planes,triangles, currentRay.direction);
+      
+      float delayTimeInMS = ((intersectionInfo.point - currentRay.position).length() / SPEED_OF_SOUND) * 0.001f;
       
       //sound = direct + sumOfReflectedSound (global sound)
       //soundResult = soundResult + calculatSound();
@@ -440,7 +443,7 @@ int main()
   //Spheres
   Vector<Sphere> spheres;
 
-  //spheres.emplace_back(Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
+  //spheres.emplace_back( = Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
   //spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
   //spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
   //spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
@@ -498,7 +501,7 @@ int main()
 
   // Loop over shapes
   
-  scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
+  //scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
 
   //Image creation
   Image image;
@@ -507,27 +510,12 @@ int main()
   //RandomEngine
   RandomEngine<REAL_TYPE> randomEngine;
 
-  //AudioGeneration
-  Audio audio;
-  audio.decode("../rsc/Woosh.wav");
-  AudioBuffer audioBuffer(audio);
+  //AUDIO HERE!
+  Audio raytracedAudio;
+  raytracedAudio.decode("../rsc/out2.wav");
+  AudioBuffer raytracedAudioBuffer(raytracedAudio);
 
-  Audio secondAudio;
-  secondAudio.decode("../rsc/Loquendo.wav");
-  AudioBuffer secBuffer(secondAudio);
-
-  AudioBuffer sumBuff = audioBuffer + secondAudio; 
-
-  Audio sumAudio;
-  sumAudio.create(sumBuff);
-  sumAudio.encode("../rsc/SumTest.wav");
-
-  sumBuff.setTimeOffset(13.0f);
-
-  Audio offsetAudio;
-  offsetAudio.create(sumBuff);
-  offsetAudio.encode("../rsc/OffsetAudio.wav");
-
+  /*############TESTING AREA##################*/
 
 
   //Image processing
@@ -536,7 +524,6 @@ int main()
     for (int x = 0; x < vp.m_width; ++x)
     {
       Color pixelColor;
-      
 
       for (size_t j = 1; j <= AASamples; ++j)
       {
@@ -547,8 +534,8 @@ int main()
         Vector3 pixel = vp.m_upperLeftCorner + tmpPixel;
 
         Ray currentRay(scene.m_eye, pixel - scene.m_eye);
-        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, 2);
-
+        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, raytracedAudioBuffer, 1);
+        
       }
       Color_BMP colorbmp;
 
@@ -560,6 +547,9 @@ int main()
     }
   }
   
+  Audio outputAudioRaytraced;
+  outputAudioRaytraced.create(raytracedAudioBuffer);
+  outputAudioRaytraced.encode("../rsc/FINALRAYTRACEDAUDIO.wav");
   image.encode(IMG_OUTPATH);
 
   return 0;

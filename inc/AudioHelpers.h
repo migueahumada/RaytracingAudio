@@ -61,3 +61,23 @@ struct WAVE_HEADER
   DATA_SUBCHUNK data;
 };
 
+//Speed of sound at 20°C in m/s, density of 1.2041 pascals
+constexpr float SPEED_OF_SOUND {343.21f};
+
+class SoundSource
+{
+  SoundSource(const Vector3& position) 
+  {
+    m_sphere.center = position;
+    m_sphere.color = {255.0,0,0};
+    m_sphere.coeffs = {0.9,0,0};
+    m_sphere.m_radius = 20;
+  };
+
+  Sphere m_sphere;
+};
+
+struct TimeDelays
+{
+  Vector<float> m_delays;
+};
