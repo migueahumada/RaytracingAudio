@@ -4,12 +4,28 @@
 #include <array>
 #include <map>
 #include <vector>
-
+#include <random>
 
 #define NODISCARD_MSG "This value is not being used!"
 #define NODISCARD [[nodiscard(NODISCARD_MSG)]]
 
+template <typename Real>
+class RandomEngine
+{
+public:
+  RandomEngine() = default;
 
+  Real getNumber()
+  {
+    std::uniform_real_distribution<Real> distribution{ 0,1 };
+
+    return distribution(mt);
+
+  }
+
+  std::mt19937 mt{ std::random_device{}() };
+
+};
 
 using uint8 = uint8_t;
 using uint16 = uint16_t;

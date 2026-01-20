@@ -1,7 +1,10 @@
 #pragma once
 #include "Prerequisites.h"
 #include "MathObjects.h"
+#include "AudioHelpers.h"
+#include "AudioBuffer.h"
 #include <fstream>
+#include <cassert>
 
 /*
 * Size of the frame.
@@ -18,74 +21,24 @@
 *          --- --- --- --- --- ---
 *           ^
 *           L channel
- 
-  - Data -> array of bytes.
-  - Sample -> the normalization of the data.
-  - Frame -> a container of samples which size is the number of channels.
-  
- 
+*
+* - Data -> array of bytes.
+* - Sample -> the normalization of the data.
+* - Frame -> a container of samples which size is the number of channels.
+* 
+*
+* Formulas:
+*  Duration = channels * sampleRate * bitdepth
+*
+*  Samples = sampleRate * channels * duration(s);
+*
+*  NumBytes = numSamples * bytesPerSample;
+*
+*  DataSize = sampleRate * channels * duration
+*
 */
 
-
-
-namespace FilterType
-{
-  enum E {
-    LOWPASS = 0,
-    HIGHPASS,
-    BANDPASS
-  };
-}
-
-#ifdef _WIN64
-  #define fourccRIFF 'FFIR' //fourcc -> means "four character code"
-  #define fourccWAVE 'EVAW'
-  #define fourccFMT  ' tmf'
-  #define fourccDATA 'atad'
-#endif // _WIN32
-
-#ifdef __APPLE__
-  #define fourccRIFF 'FFIR'
-  #define fourccWAVE 'EVAW'
-  #define fourccFMT  ' tmf'
-  #define fourccDATA 'atad'
-#endif // __APPLE__
-
-
-struct RIFF_CHUNK
-{
-  uint32 chunkID;
-  uint32 chunkSize;
-  uint32 format;
-};
-
-struct FMT_SUBCHUNK
-{
-  uint32 subchunk1ID;
-  uint32 subchunk1Size;
-  uint16 audioFormat;
-  uint16 numChannels;
-  uint32 sampleRate;
-  uint32 byteRate;
-  uint16 blockAlign;
-  uint16 bitsPerSample;
-};
-
-struct DATA_SUBCHUNK
-{
-  uint32 subchunk2ID;
-  uint32 subchunk2Size;
-};
-
-/**
- The header
- */
-struct WAVE_HEADER
-{
-  RIFF_CHUNK riff;
-  FMT_SUBCHUNK fmt;
-  DATA_SUBCHUNK data;
-};
+class AudioBuffer;
 
 #pragma pack(push, 8)
 class Audio
@@ -104,12 +57,18 @@ class Audio
 
   
   /*
-  * Creates an audio object with an specified data size.
+  * Creates an audio object with some duration.
   */
   void create(uint32 sampleRate,
               uint16 bitDepth,
               uint16 numChannels,
               uint32& durationInMS);
+  
+  /*
+  * Creates an audio object from an AudioBuffer
+  */
+  void create(AudioBuffer& audioBuffer);
+  
   /**
   * Reads the contents of a wave file 
   **/
@@ -126,6 +85,7 @@ class Audio
   NODISCARD
   inline const uint16 getBytesPerSample() const
   {
+    assert(m_dataSize > 0 && "Couldn't get the BytesPerSample");
     return m_bitsPerSample >> 3;
   }
 
@@ -144,6 +104,7 @@ class Audio
   NODISCARD
   inline const size_t getTotalNumSamples() const
   {
+    assert(m_dataSize > 0 && "Size of audio data is 0");
     return m_dataSize / getBytesPerSample();
   }
 
@@ -153,23 +114,38 @@ class Audio
   NODISCARD
   inline const size_t getTotalNumFrames() const
   {
+     assert(m_dataSize > 0 && "Couldn't get the TotalNumFrames.");
      return getTotalNumSamples() / m_numChannels;
+  }
+
+  NODISCARD
+  inline const uint32 getSampleRate() const
+  {
+    return m_sampleRate;
   }
 
   /**
     Gets the frame Sample value in floats
   */
   NODISCARD
-  float getFrameSample(int channelIndex, int frameIndex);
+  float getFrameSample(uint32 channelIndex, uint32 frameIndex);
 
   /**
     Sets the frame sample value as a float
   */
-  void setFrameSample(int channelIndex,
-                      int frameIndex,
+  void setFrameSample(uint32 channelIndex,
+                      uint32 frameIndex,
                       float sampleValue); 
   
   void processAudio();
+
+  inline NODISCARD float getVolume() const
+  {
+    return m_volume;
+  }
+
+  void setVolume(float newVolume);
+  
 
   void sine(float amp = 0.5f, 
             float freq = 440.0f,
@@ -211,26 +187,15 @@ private:
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
 
-  size_t m_dataSize = 0;
-  uint32 m_sampleRate = 0;
-  uint16 m_bitsPerSample = 0;
-  uint16 m_numChannels = 0;
-
-  uint8* m_data = nullptr;
+  size_t m_dataSize {0};
+  uint32 m_sampleRate {0};
+  uint16 m_bitsPerSample {0};
+  uint16 m_numChannels {0};
+  uint8* m_data {nullptr};
+  float m_volume {1.0f};
   
   
 };
 #pragma pack(pop)
 
-/*
-* 
-* 
-* Samples = sampleRate * channels * duration(s);
-* 
-* 
-* 
-* NumBytes = numSamples * bytesPerSample;
-* 
-* DataSize = sampleRate * channels * duration
-**/
 

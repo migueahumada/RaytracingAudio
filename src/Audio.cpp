@@ -1,5 +1,5 @@
 #include "Audio.h"
-#include <assert.h>
+
 #include <limits>
 
 
@@ -30,7 +30,7 @@ void Audio::create(uint32 sampleRate,
   
   float seconds = durationInMS * 0.001f;
 
-  uint32 numSamples = m_sampleRate * numChannels * seconds;
+  uint32 numSamples = static_cast<uint32>(m_sampleRate * numChannels * seconds);
   
   uint32 dataSize = numSamples * getBytesPerSample();
 
@@ -39,6 +39,73 @@ void Audio::create(uint32 sampleRate,
   m_data = new uint8[dataSize];
 
   memset(m_data,0,dataSize);
+}
+
+
+void Audio::create(AudioBuffer& audioBuffer)
+{
+  m_sampleRate = audioBuffer.m_sampleRate;
+  m_bitsPerSample = audioBuffer.m_bitDepth;
+  m_numChannels = audioBuffer.m_channels;
+
+  m_dataSize = audioBuffer.m_samples.size() * getBytesPerSample();
+
+  const size_t dataSize = m_dataSize;
+
+  m_data = new uint8[dataSize];
+
+  memset(m_data, 0, dataSize);
+
+  Vector<uint8> vRawData;
+
+  for (size_t i = 0; i < audioBuffer.m_samples.size(); ++i)
+  {
+    if (audioBuffer.m_bitDepth == 8)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int8 intSample = static_cast<int8>(floatSample * std::numeric_limits<int16>::max());
+
+      uint8 uint8sample;
+
+      memcpy(&uint8sample, &intSample,sizeof(uint8));
+
+      vRawData.push_back(uint8sample);
+
+    }
+
+    if (audioBuffer.m_bitDepth == 16)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int16 intSample = static_cast<int16>(floatSample * std::numeric_limits<int16>::max());
+      
+      uint8 arr[2];
+
+      memcpy(&arr,&intSample,sizeof(int16));
+    
+      vRawData.push_back(arr[0]);
+      vRawData.push_back(arr[1]);
+     
+    }
+
+    if (audioBuffer.m_bitDepth == 32)
+    {
+      float floatSample = audioBuffer.m_samples[i];
+
+      int32 intSample = static_cast<int32>(floatSample * std::numeric_limits<int32>::max());
+
+      uint8 arr[3];
+
+      memcpy(&arr, &intSample, sizeof(int32));
+
+      vRawData.push_back(arr[0]);
+      vRawData.push_back(arr[1]);
+      vRawData.push_back(arr[2]);
+    }
+  }
+
+  memcpy(*&m_data, vRawData.data(), vRawData.size());
 }
 
 void Audio::decode(const String& filePath)
@@ -111,8 +178,8 @@ void Audio::encode(const String& filePath)
 */
 
 // This is like using a get Pixel function
-float Audio::getFrameSample(int channelIndex,
-                            int frameIndex)
+float Audio::getFrameSample(uint32 channelIndex,
+  uint32 frameIndex)
 {
   assert(channelIndex < m_numChannels &&
          "Channel should not be greater than the number of channels");
@@ -149,8 +216,8 @@ float Audio::getFrameSample(int channelIndex,
 
 }
 
-void Audio::setFrameSample(int channelIndex,
-                           int frameIndex,
+void Audio::setFrameSample(uint32 channelIndex,
+                           uint32 frameIndex,
                            float sampleValue)
 {
   
@@ -202,6 +269,19 @@ void Audio::processAudio()
   }
 
   
+}
+
+void Audio::setVolume(float newVolume)
+{
+  for (uint32 frame = 0; frame < getTotalNumFrames(); ++frame)
+  {
+    for (uint32 channel = 0; channel < getNumChannels(); ++channel)
+    {
+      float inSample = getFrameSample(channel, frame);
+      setFrameSample(channel, frame, inSample * newVolume);
+    }
+  }
+  m_volume = newVolume;
 }
 
 void Audio::sine(float amp,

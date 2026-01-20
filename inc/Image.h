@@ -35,9 +35,9 @@ struct BITMAP_HEADER
 };
 #pragma pack(pop)
 
-struct Color
+struct Color_BMP
 {
-  Color(uint8 r = 0, uint8 g = 0, uint8 b = 0, uint8 a = 255) 
+  Color_BMP(uint8 r = 0, uint8 g = 0, uint8 b = 0, uint8 a = 255)
     : r(r), g(g), b(b), a(a)
   {}
 
@@ -80,11 +80,11 @@ class Image
   void encode(const String& filePath);
 
   NODISCARD
-  Color getPixel(uint32 x, uint32 y) const;
+    Color_BMP getPixel(uint32 x, uint32 y) const;
 
-  void setPixel(uint32 x, uint32 y, const Color& color);
+  void setPixel(uint32 x, uint32 y, const Color_BMP& color);
 
-  void clearColor(const Color& color);
+  void clearColor(const Color_BMP& color);
   
 
  private:

@@ -70,7 +70,7 @@ void Image::encode(const String& filePath)
   file.close();
 }
 
-Color Image::getPixel(uint32 x, uint32 y) const
+Color_BMP Image::getPixel(uint32 x, uint32 y) const
 {
   
   uint32 pixelPos = x * getBytesPerPixel() + y * getPitch();
@@ -83,13 +83,13 @@ Color Image::getPixel(uint32 x, uint32 y) const
   {
     uint8 a = *&m_pixels[pixelPos + 3];
 
-    return Color(r, g, b, a);
+    return Color_BMP(r, g, b, a);
   }
 
-  return Color(r, g, b);
+  return Color_BMP(r, g, b);
 }
 
-void Image::setPixel(uint32 x, uint32 y, const Color& color)
+void Image::setPixel(uint32 x, uint32 y, const Color_BMP& color)
 {
   
   uint32 pixelPos = x * getBytesPerPixel() + y * getPitch();
@@ -104,7 +104,7 @@ void Image::setPixel(uint32 x, uint32 y, const Color& color)
   }
 }
 
-void Image::clearColor(const Color& color)
+void Image::clearColor(const Color_BMP& color)
 {
   for (uint32 y = 0; y < m_height; ++y)
   {
