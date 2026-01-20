@@ -452,11 +452,11 @@ int main()
   //Spheres
   Vector<Sphere> spheres;
 
-  //spheres.emplace_back( = Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
+  spheres.emplace_back( Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
+  spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
+  spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
+  spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
+  spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
 
   //Planes (Room)
   Vector3 norm1(-5, 0, -4), point1(1300, 500, 500), planeColor(230, 182, 200);
@@ -510,7 +510,7 @@ int main()
 
   // Loop over shapes
   
-  //scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
+  scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
 
   //Image creation
   Image image;
