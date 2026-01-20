@@ -57,13 +57,16 @@ class Audio
 
   
   /*
-  * Creates an audio object with an specified data size.
+  * Creates an audio object with some duration.
   */
   void create(uint32 sampleRate,
               uint16 bitDepth,
               uint16 numChannels,
               uint32& durationInMS);
   
+  /*
+  * Creates an audio object from an AudioBuffer
+  */
   void create(AudioBuffer& audioBuffer);
   
   /**
