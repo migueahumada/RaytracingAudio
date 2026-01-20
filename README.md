@@ -7,8 +7,8 @@ of a simple room and an audio file, then it generates a `.bmp` file
 showing the room along with a `.wav` audio file representing how the 
 input soundfile will sound in the room.
 
-There's a custom `.wav` and `.bmp` encoder/decoder that works 
-both MacOS and in Windows.
+There are custom `.wav` and `.bmp` decoders/encoders that work 
+on MacOS and Windows.
 
 
 ## :desktop_computer: Building the project
