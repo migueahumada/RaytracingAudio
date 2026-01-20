@@ -13,7 +13,6 @@ struct BITMAP_FILE_HEADER
   uint32 offsetToData;
 };
 
-
 struct BITMAP_DIB_HEADER
 {
   uint32 size;
@@ -55,6 +54,14 @@ class Image
 {
  public:
   Image() = default;
+  ~Image()
+  {
+    if (m_pixels)
+    {
+      delete[] m_pixels;
+      m_pixels = nullptr;
+    }
+  }
 
   NODISCARD
   inline uint16 getBytesPerPixel() const

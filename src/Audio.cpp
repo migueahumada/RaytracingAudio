@@ -1,9 +1,8 @@
 #include "Audio.h"
 
 #include <limits>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
+
+
 
 
 void Audio::create(uint32 sampleRate, 
@@ -297,7 +296,7 @@ void Audio::sine(float amp,
 
       float outSample = amp * std::cosf(2.0f * PI * frame * freq / m_sampleRate + phase);
 
-      setFrameSample(channel, frame, std::clamp(outSample,-1.0f,1.0f));
+      setFrameSample(channel, frame, clamp(outSample,-1.0f,1.0f));
     }
   }
 }
@@ -312,7 +311,7 @@ void Audio::phoneDial(float amp, float freq, float phase)
       float outSample = amp * std::cosf(2*PI * frame * freq / m_sampleRate + phase)
         * std::cosf(2.0f * PI * frame * 100.0f / m_sampleRate + phase);
 
-      setFrameSample(channel, frame, std::clamp(outSample, -1.0f, 1.0f));
+      setFrameSample(channel, frame, clamp(outSample, -1.0f, 1.0f));
     }
   }
 }
@@ -369,7 +368,7 @@ void Audio::lowpass(float cutoff, float Q)
       y2[channel] = y1[channel];
       y1[channel] = y;
 
-      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+      setFrameSample(channel, frame, clamp(y, -1.0f, 1.0f));
     }
   }
 
@@ -419,7 +418,7 @@ void Audio::highpass(float cutoff, float Q)
       y2[channel] = y1[channel];
       y1[channel] = y;
 
-      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+      setFrameSample(channel, frame, clamp(y, -1.0f, 1.0f));
     }
   }
 }
@@ -468,7 +467,7 @@ void Audio::bandpass(float cutoff, float Q)
       y2[channel] = y1[channel];
       y1[channel] = y;
 
-      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+      setFrameSample(channel, frame, clamp(y, -1.0f, 1.0f));
     }
   }
 }
@@ -534,7 +533,7 @@ void Audio::digitalIntegrator()
       x1 = x;
       y1 = y;
 
-      setFrameSample(channel, frame, std::clamp(y, -1.0f, 1.0f));
+      setFrameSample(channel, frame, clamp(y, -1.0f, 1.0f));
     }
   }
 }

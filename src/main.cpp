@@ -5,6 +5,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#include "ComputeAPI.h"
 
 #ifdef _WIN32
   #define INPATH "../rsc/SoundFile_01.wav"
@@ -34,12 +35,13 @@
   #define OUTPATH2  "../../rsc/out3.wav"
 #endif
 
+                                               
 
 // TODO:
 // https://easings.net/
 //Canal de una textura
 // 0 - 1
-//Poner un lambda para cambiar la interpolación
+//Poner un lambda para cambiar la interpolaciï¿½n
 // Callback y lambda
 
 static const int width = 1920;
@@ -436,7 +438,14 @@ Color findColor(const Ray& ray,
 
 int main()
 {
-  
+  /*
+  ComputeAPI computeAPI;
+
+  computeAPI.Init();
+  computeAPI.DecodeProgram("../compute/compute.cl");
+
+  Complex<int> comp(3,4);
+*/
 
 
 

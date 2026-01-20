@@ -48,4 +48,41 @@ using Array = std::array<T, N>;
 template<class T>
 using Vector = std::vector<T>;
 
+template<typename Num>
+Num clamp(Num value, Num min, Num max)
+{
+	static_assert(std::is_arithmetic<Num>::value);
+
+	if (value >= max) return max;
+	if (value <= min) return min;
+
+	return value;
+
+}
+
+template<typename Num>
+class Complex
+{
+ public:
+	Complex() = default;
+	Complex(Num real , Num img) 
+		: m_real(real), m_img(img)
+	{}
+
+	Complex operator+(const Complex& other)
+	{
+		return Complex(m_real + other.m_real, m_img + other.m_img);
+	}
+
+	Complex operator-(const Complex& other)
+	{
+		return Complex(m_real - other.m_real, m_img - other.m_img);
+	}
+	
+ private:
+
+	Num m_real = 0;
+	Num m_img = 0;
+};
+
 
