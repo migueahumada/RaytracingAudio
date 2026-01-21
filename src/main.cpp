@@ -1,9 +1,8 @@
+#define TINYOBJLOADER_IMPLEMENTATION
+
 #include "Audio.h"
 #include "Image.h"
 #include "RaytracingHelpers.h"
-
-
-#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 //#include "ComputeAPI.h"
 
@@ -11,10 +10,8 @@
   #define INPATH "../rsc/SoundFile_01.wav"
   #define OUTPATH "../rsc/OutputSound.wav"
   #define OUTPATH2 "../rsc/out3.wav"
-
   #define IMG_INPATH "../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../rsc/OutImage.bmp"
-
   #define MODEL_INPATH "../rsc/chango.obj"
 #endif
 
@@ -33,9 +30,7 @@
   #define INPATH "../../rsc/SoundFile_01.wav"
   #define OUTPATH "../../rsc/out2.wav"
   #define OUTPATH2  "../../rsc/out3.wav"
-#endif
-
-                                               
+#endif                                    
 
 // TODO:
 // https://easings.net/
@@ -52,27 +47,6 @@ static const int AASamples = 1;
 static constexpr REAL_TYPE kA = (REAL_TYPE)0.5;
 static constexpr REAL_TYPE kD = (REAL_TYPE)0.4;
 static constexpr REAL_TYPE kS = (REAL_TYPE)0.7;
-
-void audioProcesses()
-{
-  Audio audio;
-  audio.decode(INPATH);
-  audio.processAudio();
-
-  audio.butterworth(FilterType::LOWPASS, 800.0f);
-  audio.butterworth(FilterType::HIGHPASS, 100.0f);
-  audio.biquad(FilterType::LOWPASS,800.0,0.707f);
-  audio.biquad(FilterType::HIGHPASS, 100.0, 0.707f);
-
-  audio.encode(OUTPATH);
-
-  Audio newAudio;
-  uint32 milliseconds = 250;
-  newAudio.create(96000, 16, 4, milliseconds);
-  newAudio.sine(0.5f, 440.0f);
-  newAudio.encode(OUTPATH2);
-
-}
 
 /*
   Creates a viewport that can easily be converted into an image.
