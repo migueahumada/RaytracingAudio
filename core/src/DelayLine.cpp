@@ -1,11 +1,12 @@
 #include "DelayLine.h"
 
 DelayLine::DelayLine(int delayInSamples) 
-  : m_delayBuffer(delayInSamples),
+  : m_delayBuffer(delayInSamples, 0),
     m_writeIndex(0)
 {
   
 }
+
 
 float DelayLine::Process(float input)
 {

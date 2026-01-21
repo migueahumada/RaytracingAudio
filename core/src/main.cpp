@@ -1,8 +1,10 @@
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "Audio.h"
 #include "Image.h"
 #include "RaytracingHelpers.h"
 #include "Scene.h"
 #include "Viewport.h"
+
 //#include "ComputeAPI.h"
 
 #ifdef _WIN32
@@ -321,8 +323,6 @@ int main()
 
   Complex<int> comp(3,4);
 */
-
-
 
   //Spheres
   Vector<Sphere> spheres;

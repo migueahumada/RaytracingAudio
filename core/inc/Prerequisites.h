@@ -12,7 +12,7 @@
 template <typename Real>
 class RandomEngine
 {
-public:
+ public:
   RandomEngine() = default;
 
   Real getNumber()
