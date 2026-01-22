@@ -1,5 +1,4 @@
 #include "Audio.h"
-
 #include <limits>
 
 
@@ -95,13 +94,14 @@ void Audio::create(AudioBuffer& audioBuffer)
 
       int32 intSample = static_cast<int32>(floatSample * std::numeric_limits<int32>::max());
 
-      uint8 arr[3];
+      uint8 arr[4];
 
-      memcpy(&arr, &intSample, sizeof(int32));
+      memcpy(&arr, &intSample,sizeof(int32));
 
       vRawData.push_back(arr[0]);
       vRawData.push_back(arr[1]);
       vRawData.push_back(arr[2]);
+      vRawData.push_back(arr[3]);
     }
   }
 
@@ -150,7 +150,7 @@ void Audio::encode(const String& filePath)
 
   waveHeader.fmt.subchunk1ID = fourccFMT;
   waveHeader.fmt.subchunk1Size = sizeof(FMT_SUBCHUNK) - 8;
-  waveHeader.fmt.audioFormat = 1;
+  waveHeader.fmt.audioFormat = static_cast<uint16>(getAudioFormat());
   waveHeader.fmt.numChannels = m_numChannels;
   waveHeader.fmt.sampleRate = m_sampleRate;
   waveHeader.fmt.byteRate = m_sampleRate * m_numChannels * getBytesPerSample();

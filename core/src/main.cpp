@@ -1,9 +1,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-
 #include "Audio.h"
 #include "Image.h"
 #include "RaytracingHelpers.h"
-#include "tiny_obj_loader.h"
+#include "Scene.h"
+#include "Viewport.h"
+
 //#include "ComputeAPI.h"
 
 #ifdef _WIN32
@@ -47,104 +48,6 @@ static const int AASamples = 1;
 static constexpr REAL_TYPE kA = (REAL_TYPE)0.5;
 static constexpr REAL_TYPE kD = (REAL_TYPE)0.4;
 static constexpr REAL_TYPE kS = (REAL_TYPE)0.7;
-
-/*
-  Creates a viewport that can easily be converted into an image.
-*/
-class Viewport 
-{
- public:
-
-  Viewport(uint16 width, uint16 height) 
-  : m_width(width), 
-    m_height(height),
-    m_ratio((REAL_TYPE)height/100),
-    m_upperLeftCorner(Vector3(50, 50, 100))
-  {
-
-  }
-
-  REAL_TYPE m_ratio = 0;
-  uint16 m_width;
-  uint16 m_height;
-  Vector3 m_upperLeftCorner;
-
-};
-
-class Scene
-{
- public:
-  Scene(const Light& light,
-        const Vector<Plane>& planes,
-        const Vector<Sphere>& spheres,
-        const Vector<Triangle>& triangles,
-        const Vector3& eye = Vector3(0,0,0)) 
-    : m_light(light),
-      m_planes(planes),
-      m_spheres(spheres),
-      m_triangles(triangles),
-      m_eye(eye)
-  {}
-
-  template<typename Real>
-  void AddModelTriangles(const tinyobj::attrib_t& attrib,
-                         const Vector<tinyobj::shape_t>& shapes,
-                         Real kA, Real kD, Real kS)
-  {
-    for (size_t s = 0; s < shapes.size(); s++) {
-      // Loop over faces(polygon)
-      size_t index_offset = 0;
-
-      for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-        size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
-
-        Vector3 v0, v1, v2;
-
-        // Loop over vertices in the face.
-        for (size_t v = 0; v < fv; v++) {
-          // access to vertex
-          tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-
-          tinyobj::real_t x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-          tinyobj::real_t y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-          tinyobj::real_t z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
-
-          if (v == 0)
-          {
-            v0 = Vector3(x, y, z);
-          }
-          if (v == 1)
-          {
-            v1 = Vector3(x, y, z);
-          }
-          if (v == 2)
-          {
-            v2 = Vector3(x, y, z);
-          }
-        }
-
-        Vector3 offset(0, 0, 60);
-          m_triangles.emplace_back(Triangle((v0 * 20) + offset,
-          (v1 * 20) + offset,
-          (v2 * 20) + offset,
-          { 255,255,0 }, kA, kD, kS));
-
-        index_offset += fv;
-      }
-    }
-  }
-  
- public:
-
-  Vector3 m_eye;
-  Light m_light;
-  Vector<Plane> m_planes;
-  Vector<Sphere> m_spheres;
-  Vector<Triangle> m_triangles;
-  
-};
-
-
 
 IntersectionInfo findClosestIntersection(const Ray& ray,
                                         const Vector<Sphere>& spheres,
@@ -420,8 +323,6 @@ int main()
 
   Complex<int> comp(3,4);
 */
-
-
 
   //Spheres
   Vector<Sphere> spheres;

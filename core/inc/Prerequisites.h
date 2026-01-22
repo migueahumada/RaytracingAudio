@@ -12,7 +12,7 @@
 template <typename Real>
 class RandomEngine
 {
-public:
+ public:
   RandomEngine() = default;
 
   Real getNumber()
@@ -26,6 +26,12 @@ public:
   std::mt19937 mt{ std::random_device{}() };
 
 };
+
+
+static bool isPowerOfTwo(int value)
+{
+	return (value & (value - 1)) == 0 ? true : false;
+}
 
 using uint8 = uint8_t;
 using uint16 = uint16_t;

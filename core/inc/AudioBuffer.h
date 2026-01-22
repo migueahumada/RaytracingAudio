@@ -24,6 +24,24 @@ class AudioBuffer
   
   void setTimeOffset(float timeInMilliseconds);
 
+  NODISCARD 
+  inline uint32 getSampleRate()
+  {
+    return m_sampleRate;
+  }
+
+  NODISCARD
+  inline uint16 getNumChannels()
+  {
+    return m_channels;
+  }
+
+  NODISCARD
+  inline uint16 getBitDepth()
+  {
+    return m_bitDepth;
+  }
+
  public:
   Vector<float> m_samples;
   uint32 m_sampleRate{ 0 };

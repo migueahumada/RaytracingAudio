@@ -187,6 +187,17 @@ private:
   void readSubchunks(std::fstream& file, 
                      WAVE_HEADER& waveHeader);
 
+  /**
+  * 1 -> PCM encoding
+  * 3 -> float encoding
+  */
+  NODISCARD
+  inline WAV_FORMAT::E getAudioFormat()
+  {
+    return (m_bitsPerSample == 32) ? 
+      WAV_FORMAT::IEEE_FLOAT : WAV_FORMAT::PCM;
+  }
+
   size_t m_dataSize {0};
   uint32 m_sampleRate {0};
   uint16 m_bitsPerSample {0};
