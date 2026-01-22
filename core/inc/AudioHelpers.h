@@ -77,7 +77,32 @@ class SoundSource
   Sphere m_sphere;
 };
 
-struct TimeDelays
+template<typename T>
+class CircularBuffer
 {
-  Vector<float> m_delays;
+public:
+  explicit CircularBuffer(size_t size)
+    : m_readIndex(0),
+    m_writeIndex(0)
+  {
+    assert(size > 0 && "size should be greater than zero");
+    assert((size & (size - 1)) == 0 && "size should be a power of two");
+    m_buffer.resize(size);
+  }
+
+  void write(const T& value)
+  {
+    m_buffer[m_writeIndex] = value;
+    m_writeIndex = (m_writeIndex + 1) % m_buffer.size();
+  }
+
+  T read()
+  {
+    m_buffer[m_read]
+  }
+
+private:
+  Vector<T> m_buffer;
+  int m_readIndex;
+  int m_writeIndex;
 };

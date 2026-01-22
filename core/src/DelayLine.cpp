@@ -1,19 +1,33 @@
 #include "DelayLine.h"
+#include "AudioBuffer.h"
 
-DelayLine::DelayLine(int delayInSamples) 
-  : m_delayBuffer(delayInSamples, 0),
-    m_writeIndex(0)
+DelayLine::DelayLine(size_t size/*, int delayTime, int sampleRate*/)
+  : m_writePos(0)
 {
-  
+  m_buffer.resize(size);
 }
 
 
-float DelayLine::Process(float input)
+void DelayLine::Process(float* inBuffer, int numSamplesFrames)
 {
-  float delayedSample = m_delayBuffer[m_writeIndex];
-  m_delayBuffer[m_writeIndex] = input;
 
-  m_writeIndex = (m_writeIndex + 1) % m_delayBuffer.size();
+  float* inReadPtr = inBuffer;
+  float* inWritePtr = inBuffer;
 
-  return delayedSample;
+  int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate);
+
+  while (--numSamplesFrames >= 0)
+  {
+    m_buffer[m_writePos] = *inReadPtr;
+    ++inReadPtr;
+    ++m_writePos;
+    m_writePos &= (m_buffer.size() - 1);
+
+    int readPos = (m_writePos - samplesDelayed) & (m_buffer.size() - 1);
+    *inWritePtr = m_buffer[readPos];
+    ++inWritePtr;
+
+  }
 }
+
+

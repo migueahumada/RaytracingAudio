@@ -3,53 +3,7 @@
 #include "MathObjects.h"
 #include "DelayLine.h"
 #include "Prerequisites.h"
-
-#define MAX_BUFFER_LENGTH 16
-#define BIT_MASK (MAX_BUFFER_LENGTH - 1) 
-
-
-
-class FlexibleDelayLine
-{
- public:
-  explicit FlexibleDelayLine(size_t size/*, int delayTime, int sampleRate*/)
-    : m_writePos(0)
-      //m_currentDelayTime(delayTime),
-      //m_floatSampleRate(sampleRate) 
-  {
-    m_buffer.resize(size);
-  }
-  
-  void Process(float* inBuffer, int numSamplesFrames)
-  {
-    
-
-    float* inReadPtr = inBuffer;
-    float* inWritePtr = inBuffer;
-
-    int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate);
-
-    while ( --numSamplesFrames >= 0)
-    {
-      m_buffer[m_writePos] = *inReadPtr;
-      ++inReadPtr;
-      ++m_writePos;
-      m_writePos &= (m_buffer.size()- 1);
-
-      int readPos = (m_writePos - samplesDelayed) & (m_buffer.size() -1);
-      *inWritePtr = m_buffer[readPos];
-      ++inWritePtr;
-      
-    }
-  }
-
- //private:
-  int   m_writePos;
-  Vector<float> m_buffer;
-  float m_currentDelayTime = 5.0f;
-  float m_floatSampleRate = 1.0f;
-  
-};
+#include "AudioHelpers.h"
 
 int main()
 {
@@ -74,19 +28,19 @@ int main()
 
 
 
-  FlexibleDelayLine delayLine(512);
-
-  RandomEngine<float> rd;
+  DelayLine delayLine(512);
 
   AudioBuffer audioBuffer(audioTest);
 
 
   delayLine.Process(audioBuffer.m_samples.data(), audioBuffer.m_samples.size());
 
-  Audio newAudio;
-  newAudio.create(audioBuffer);
   
-  newAudio.encode("newAUdio.wav");
+
+  Audio newAudio;
+  //newAudio.create(delayLine.m_buffer);
+  
+  //newAudio.encode("newAUdio.wav");
 
 
   

@@ -11,6 +11,7 @@ set(SOURCES src/Audio.cpp
 set(HEADERS inc/Audio.h
             inc/AudioBuffer.h
             inc/AudioHelpers.h
+            inc/MathObjects.h
             inc/DelayLine.h
             inc/Image.h
             inc/Prerequisites.h

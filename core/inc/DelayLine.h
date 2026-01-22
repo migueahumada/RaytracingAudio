@@ -1,48 +1,30 @@
 #pragma once
 #include "Prerequisites.h"
 
+class AudioBuffer;
+
 class DelayLine
 {
- public:
-  explicit DelayLine(int delayInSamples);
+public:
+  
+  explicit DelayLine(size_t size);
 
-  float Process(float input);
+  void Process(float* inBuffer, int numSamplesFrames);
 
- private:
-  Vector<float> m_delayBuffer;
-  size_t m_writeIndex;
+  NODISCARD 
+  inline Vector<float> getBuffer()
+  {
+    return m_buffer;
+  }
 
+  private:
+  int m_writePos;
+  float m_currentDelayTime = 5.0f;
+  Vector<float> m_buffer;
+  float m_floatSampleRate = 1.0f;
 };
 
-template<typename T>
-class CircularBuffer
-{
- public:
-  explicit CircularBuffer(size_t size) 
-    : m_readIndex(0),
-      m_writeIndex(0)
-  {
-    assert(size > 0 && "size should be greater than zero");
-    assert((size & (size-1)) == 0 && "size should be a power of two");
-    m_buffer.resize(size);
-  }
 
-  void write(const T& value)
-  {
-    m_buffer[m_writeIndex] = value;
-    m_writeIndex = (m_writeIndex + 1) % m_buffer.size();
-  }
-
-  T read()
-  {
-    m_buffer[m_read]
-  }
-
- private:
-  Vector<T> m_buffer;
-  int m_readIndex;
-  int m_writeIndex;
-};
 
 
 //struct CircularBuffer
