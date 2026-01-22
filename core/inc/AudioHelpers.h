@@ -25,6 +25,14 @@ namespace FilterType
 #define fourccDATA 'atad'
 #endif // __APPLE__
 
+namespace WAV_FORMAT
+{
+  enum E
+  {
+    PCM = 1,
+    IEEE_FLOAT = 3
+  };
+}
 
 struct RIFF_CHUNK
 {

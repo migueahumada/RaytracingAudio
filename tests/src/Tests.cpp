@@ -15,12 +15,13 @@ int main()
 
   Audio audioTest;
 
-  audioTest.decode("../../rsc/Woosh.wav");
+  audioTest.decode("../../rsc/IR.wav");
   std::cout << "\nAudio File Decoding" << std::endl;
   std::cout << "################################" << std::endl;
   std::cout << "-Num channels: " << audioTest.getNumChannels() << std::endl;
   std::cout << "-Bit depth: " << (audioTest.getBytesPerSample() << 3) << std::endl;
   std::cout << "-Bytes per sample: " << audioTest.getBytesPerSample() << std::endl;
+  std::cout << "-Sample Rate: " << audioTest.getSampleRate() << std::endl;
   std::cout << "-Num samples: " << audioTest.getTotalNumSamples() << std::endl;
   std::cout << "-Total num frames: " << audioTest.getTotalNumFrames() << std::endl;
   std::cout << "-Total Num samples: " << audioTest.getTotalNumSamples() << std::endl;
@@ -33,14 +34,13 @@ int main()
   AudioBuffer audioBuffer(audioTest);
 
 
-  delayLine.Process(audioBuffer.m_samples.data(), audioBuffer.m_samples.size());
+  delayLine.Process(audioBuffer.m_samples.data(), audioBuffer.m_samples.size());*/
 
-  
+  audioTest.encode("../../rsc/OuputTesting.wav");
 
   Audio newAudio;
-  //newAudio.create(delayLine.m_buffer);
-  
-  //newAudio.encode("newAUdio.wav");
+  newAudio.create(audioBuffer);  
+  newAudio.encode("../../rsc/OuputTesting.wav");
 
 
   

@@ -7,9 +7,11 @@ class DelayLine
 {
 public:
   
-  explicit DelayLine(size_t size);
+  DelayLine(size_t size);
+  
 
   void Process(float* inBuffer, int numSamplesFrames);
+  void Process(AudioBuffer& audioBuffer, float delayTime);
 
   NODISCARD 
   inline Vector<float> getBuffer()
