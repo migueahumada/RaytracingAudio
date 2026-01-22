@@ -15,7 +15,7 @@ int main()
 
   Audio audioTest;
 
-  audioTest.decode("../../rsc/IR.wav");
+  audioTest.decode("../../rsc/Sine.wav");
   std::cout << "\nAudio File Decoding" << std::endl;
   std::cout << "################################" << std::endl;
   std::cout << "-Num channels: " << audioTest.getNumChannels() << std::endl;
@@ -26,25 +26,17 @@ int main()
   std::cout << "-Total num frames: " << audioTest.getTotalNumFrames() << std::endl;
   std::cout << "-Total Num samples: " << audioTest.getTotalNumSamples() << std::endl;
   std::cout << "-Volume: " << audioTest.getVolume() << std::endl;
-
-
-
-  DelayLine delayLine(512);
-
+  
+  //AudioBuffer with what is inside my wav file
   AudioBuffer audioBuffer(audioTest);
 
-
-  delayLine.Process(audioBuffer.m_samples.data(), audioBuffer.m_samples.size());*/
-
-  audioTest.encode("../../rsc/OuputTesting.wav");
-
-  Audio newAudio;
-  newAudio.create(audioBuffer);  
-  newAudio.encode("../../rsc/OuputTesting.wav");
-
-
+  //Create a DelayLine with the sample size of my .wav
+  DelayLine delayLine(audioTest.getTotalNumSamples());
+  delayLine.Process(audioBuffer, 10000.0f);
   
+  Audio audioDelayed;
+  audioDelayed.create(audioBuffer);
+  audioDelayed.encode("../../rsc/OutputTesting.wav");
 
-  
   return 0;
 }

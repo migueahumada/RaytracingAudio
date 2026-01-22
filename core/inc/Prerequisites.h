@@ -27,6 +27,12 @@ class RandomEngine
 
 };
 
+
+static bool isPowerOfTwo(int value)
+{
+	return (value & (value - 1)) == 0 ? true : false;
+}
+
 using uint8 = uint8_t;
 using uint16 = uint16_t;
 using uint32 = uint32_t;

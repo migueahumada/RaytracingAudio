@@ -12,18 +12,19 @@ public:
 
   void Process(float* inBuffer, int numSamplesFrames);
   void Process(AudioBuffer& audioBuffer, float delayTime);
+  void Process(float* inBuffer, int bufferSize, float delayTime, float sampleRate);
 
   NODISCARD 
-  inline Vector<float> getBuffer()
+  inline Vector<float> getSamplesBuffer()
   {
     return m_buffer;
   }
 
   private:
   int m_writePos;
-  float m_currentDelayTime = 5.0f;
+  float m_currentDelayTime = 1.0f;
   Vector<float> m_buffer;
-  float m_floatSampleRate = 1.0f;
+  float m_floatSampleRate = 2.0f;
 };
 
 

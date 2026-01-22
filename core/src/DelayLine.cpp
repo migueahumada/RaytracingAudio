@@ -30,18 +30,17 @@ void DelayLine::Process(float* inBuffer, int numSamplesFrames)
   }
 }
 
-void DelayLine::Process(AudioBuffer& audioBuffer, float delayTime)
+void DelayLine::Process(float* inBuffer, int bufferSize, float delayTime, float sampleRate)
 {
-  m_currentDelayTime = delayTime;
-  m_floatSampleRate = audioBuffer.m_sampleRate;
-  int numSampleFrames = audioBuffer.m_samples.size();
+  float* inReadPtr = inBuffer;
+  float* inWritePtr = inBuffer;
 
-  float* inReadPtr = audioBuffer.m_samples.data();
-  float* inWritePtr = audioBuffer.m_samples.data();
+  m_currentDelayTime = delayTime;
+  m_floatSampleRate = sampleRate;
 
   int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate);
-
-  while (--numSampleFrames >= 0)
+  
+  while (--bufferSize >= 0)
   {
     m_buffer[m_writePos] = *inReadPtr;
     ++inReadPtr;
@@ -49,6 +48,32 @@ void DelayLine::Process(AudioBuffer& audioBuffer, float delayTime)
     m_writePos &= (m_buffer.size() - 1);
 
     int readPos = (m_writePos - samplesDelayed) & (m_buffer.size() - 1);
+    *inWritePtr = m_buffer[readPos];
+    ++inWritePtr;
+
+  }
+}
+
+void DelayLine::Process(AudioBuffer& audioBuffer, float delayTimeInMS)
+{
+  m_currentDelayTime = delayTimeInMS * 0.001f;
+  m_floatSampleRate = audioBuffer.m_sampleRate;
+
+  float* inReadPtr = &audioBuffer.m_samples[0];
+  float* inWritePtr = &audioBuffer.m_samples[0];
+
+  int numSampleFrames = audioBuffer.m_samples.size();
+
+  int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate * audioBuffer.m_channels);
+
+  while ((--numSampleFrames) >= 0)
+  {
+    m_buffer[m_writePos] = *inReadPtr;
+    ++inReadPtr;
+    ++m_writePos;
+    m_writePos = m_writePos % m_buffer.size(); 
+
+    int readPos = (m_writePos + (audioBuffer.m_channels - 1) - samplesDelayed) % m_buffer.size();
     *inWritePtr = m_buffer[readPos];
     ++inWritePtr;
 
