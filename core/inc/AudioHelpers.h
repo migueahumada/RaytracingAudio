@@ -71,7 +71,9 @@ struct WAVE_HEADER
 };
 
 //Speed of sound at 20°C in m/s, density of 1.2041 pascals
-constexpr float SPEED_OF_SOUND {343.21f};
+//constexpr float SPEED_OF_SOUND {343.21f};
+
+constexpr float SPEED_OF_SOUND{ 343.21f };
 
 class SoundSource
 {

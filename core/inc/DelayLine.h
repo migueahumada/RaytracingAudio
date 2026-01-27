@@ -11,8 +11,10 @@ public:
   
 
   void Process(float* inBuffer, int numSamplesFrames);
-  void Process(AudioBuffer& audioBuffer, float delayTime);
+  void Process(AudioBuffer& audioBuffer, float delayTimeInMS);
   void Process(float* inBuffer, int bufferSize, float delayTime, float sampleRate);
+
+  AudioBuffer GetProcessedBuffer(const AudioBuffer& audioBuffer, float delayTimeInMS);
 
   NODISCARD 
   inline Vector<float> getSamplesBuffer()

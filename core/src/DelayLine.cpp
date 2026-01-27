@@ -54,6 +54,36 @@ void DelayLine::Process(float* inBuffer, int bufferSize, float delayTime, float 
   }
 }
 
+AudioBuffer DelayLine::GetProcessedBuffer(const AudioBuffer& audioBuffer, float delayTimeInMS)
+{
+  AudioBuffer delayedBuffer = audioBuffer;
+
+  m_currentDelayTime = delayTimeInMS * 0.001f;
+  m_floatSampleRate = static_cast<float>(audioBuffer.m_sampleRate);
+
+  float* inReadPtr = &delayedBuffer.m_samples[0];
+  float* inWritePtr = &delayedBuffer.m_samples[0];
+
+  int numSampleFrames = static_cast<int>(audioBuffer.m_samples.size());
+
+  int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate * audioBuffer.m_channels);
+
+  while ((--numSampleFrames) >= 0)
+  {
+    m_buffer[m_writePos] = *inReadPtr;
+    ++inReadPtr;
+    ++m_writePos;
+    m_writePos = m_writePos % m_buffer.size();
+
+    int readPos = (m_writePos + (audioBuffer.m_channels - 1) - samplesDelayed) % m_buffer.size();
+    *inWritePtr = m_buffer[readPos];
+    ++inWritePtr;
+
+  }
+
+  return delayedBuffer;
+}
+
 void DelayLine::Process(AudioBuffer& audioBuffer, float delayTimeInMS)
 {
   m_currentDelayTime = delayTimeInMS * 0.001f;
@@ -79,5 +109,7 @@ void DelayLine::Process(AudioBuffer& audioBuffer, float delayTimeInMS)
 
   }
 }
+
+
 
 
