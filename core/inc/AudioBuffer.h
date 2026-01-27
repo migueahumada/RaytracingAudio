@@ -8,8 +8,12 @@ class AudioBuffer
 {
  public:
   AudioBuffer() = default;
-  AudioBuffer(uint16 channels, uint32 sampleRate, uint16 bitDepth) :
-              m_channels(channels), m_sampleRate(sampleRate), m_bitDepth(bitDepth)
+  AudioBuffer(uint16 channels, 
+              uint32 sampleRate, 
+              uint16 bitDepth) 
+    : m_channels(channels), 
+      m_sampleRate(sampleRate), 
+      m_bitDepth(bitDepth)
   {}
   
   AudioBuffer(Audio& audio);

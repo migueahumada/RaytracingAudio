@@ -57,12 +57,12 @@ void DelayLine::Process(float* inBuffer, int bufferSize, float delayTime, float 
 void DelayLine::Process(AudioBuffer& audioBuffer, float delayTimeInMS)
 {
   m_currentDelayTime = delayTimeInMS * 0.001f;
-  m_floatSampleRate = audioBuffer.m_sampleRate;
+  m_floatSampleRate = static_cast<float>(audioBuffer.m_sampleRate);
 
   float* inReadPtr = &audioBuffer.m_samples[0];
   float* inWritePtr = &audioBuffer.m_samples[0];
 
-  int numSampleFrames = audioBuffer.m_samples.size();
+  int numSampleFrames = static_cast<int>(audioBuffer.m_samples.size());
 
   int samplesDelayed = static_cast<int>(m_currentDelayTime * m_floatSampleRate * audioBuffer.m_channels);
 

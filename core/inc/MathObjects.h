@@ -1,7 +1,55 @@
 #pragma once
 #include "Prerequisites.h"
 
-constexpr float PI = 3.14159265f;
+constexpr REAL_TYPE PI = 3.14159265;
+
+template<typename T, uint32 N>
+class Matrix;
+
+inline REAL_TYPE RealCosine(REAL_TYPE number)
+{
+#if PRECISION_TYPE == 0
+  return std::cosf(number);
+
+#else
+  return std::cos(number);
+#endif // PRECISION_TYPE 0
+
+}
+
+inline REAL_TYPE RealSine(REAL_TYPE number)
+{
+#if PRECISION_TYPE == 0
+  return std::sinf(number);
+#else
+  return std::sin(number);
+#endif // PRECISION_TYPE 0
+
+}
+
+namespace AXIS{
+  enum E {
+    kX,
+    kY,
+    kZ,
+  };
+}
+
+
+template<typename Real>
+static Real ToDegrees(Real radians)
+{
+  Real degrees = radians * (Real)180 / PI;
+  return degrees;
+  
+}
+
+template<typename Real>
+static Real ToRadians(Real degrees)
+{
+  Real radians = PI/(Real)180.0 * degrees;
+  return radians;
+}
 
 template<typename Real>
 class Vector3_T {
@@ -9,8 +57,54 @@ class Vector3_T {
 public:
 
   Vector3_T(Real _x = 0.0f, Real _y = 0.0f, Real _z = 0.0f) :
-    x(_x), y(_y), z(_z) {
+    x(_x), y(_y), z(_z) 
+  {}
+
+  Vector3_T getRotated(float angle, AXIS::E axis)
+  {
+    Vector3_T<Real> result;
+
+    switch (axis)
+    {
+    case AXIS::kX:
+      result = GetXRotationMatrix(angle) * (*this);
+      break;
+    case AXIS::kY:
+      result = GetYRotationMatrix(angle) * (*this);
+      break;
+    case AXIS::kZ:
+      result = GetZRotationMatrix(angle) * (*this);
+      break;
+    default:
+      
+      break;
+    }
+    
+
+    return result;
   }
+
+  void Rotate(float angle, AXIS::E axis)
+  {
+
+    switch (axis)
+    {
+    case AXIS::kX:
+      (*this) = GetXRotationMatrix(angle) * (*this);
+      break;
+    case AXIS::kY:
+      (*this) = GetYRotationMatrix(angle) * (*this);
+      break;
+    case AXIS::kZ:
+      (*this) = GetZRotationMatrix(angle) * (*this);
+      break;
+    default:
+
+      break;
+    }
+  }
+
+
 
   inline Vector3_T operator+(const Vector3_T& other) const
   {
@@ -98,6 +192,149 @@ public:
   Real x = 0, y = 0, z = 0;
 };
 
+template <typename T, uint32 N>
+class Matrix {
+public:
+  Matrix()
+  {
+    static_assert(std::is_integral_v<T> == true);
+    Identity();
+  }
+
+  void Identity()
+  {
+    for (T i = 0; i < N; ++i)
+    {
+      for (T j = 0; j < N; ++j)
+      {
+        if (i == j)
+        {
+          m[i][j] = 1.0f;
+          continue;
+        }
+        m[i][j] = 0.0f;
+
+      }
+    }
+  }
+
+  float m[N][N];
+};
+
+/*
+* Row Major
+*            
+* | x | y | z |
+* | x | y | z |
+* | x | y | z |
+* 
+*/
+template<>
+class Matrix<REAL_TYPE, 3>
+{
+ public:
+  Matrix()
+  {
+    Identity();
+  }
+
+  void Identity()
+  {
+    for (size_t i = 0; i < 3; ++i)
+    {
+      for (size_t j = 0; j < 3; ++j)
+      {
+        if (i == j)
+        {
+          m[i][j] = static_cast<REAL_TYPE>(1);
+          continue;
+        }
+        m[i][j] = static_cast<REAL_TYPE>(0);
+
+      }
+    }
+  }
+
+  
+  /*
+  * Row Major
+  *
+  * | x | y | z |   
+  * | x | y | z | * | x | y | z |
+  * | x | y | z |   
+  *
+  */
+  Vector3_T<REAL_TYPE> operator*(const Vector3_T<REAL_TYPE>& v)
+  {
+    return Vector3_T<REAL_TYPE>
+    {
+      m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
+      m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
+      m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z,
+    };
+  }
+
+  REAL_TYPE m[3][3];
+};
+
+//Row Major
+static Matrix<REAL_TYPE, 3> GetXRotationMatrix(REAL_TYPE angle)
+{
+    Matrix<REAL_TYPE,3> resultMatrix;
+    
+    resultMatrix.m[0][0] = 1; 
+    resultMatrix.m[0][1] = 0;                 
+    resultMatrix.m[0][2] = 0;
+
+    resultMatrix.m[1][0] = 0;
+    resultMatrix.m[1][1] = RealCosine(angle);
+    resultMatrix.m[1][2] = -RealSine(angle);
+
+    resultMatrix.m[2][0] = 0;
+    resultMatrix.m[2][1] = RealSine(angle);
+    resultMatrix.m[2][2] = RealCosine(angle);
+
+    return resultMatrix;
+}
+
+static Matrix<REAL_TYPE, 3> GetYRotationMatrix(REAL_TYPE angle)
+{
+  Matrix<REAL_TYPE, 3> resultMatrix;
+
+  resultMatrix.m[0][0] = RealCosine(angle); 
+  resultMatrix.m[0][1] = 0;                 
+  resultMatrix.m[0][2] = RealSine(angle);
+  
+  resultMatrix.m[1][0] = 0;
+  resultMatrix.m[1][1] = 1;
+  resultMatrix.m[1][2] = 0;
+
+  resultMatrix.m[2][0] = -RealSine(angle);
+  resultMatrix.m[2][1] = 0;
+  resultMatrix.m[2][2] = RealCosine(angle);
+
+  return resultMatrix;
+}
+
+static Matrix<REAL_TYPE, 3> GetZRotationMatrix(REAL_TYPE angle)
+{
+  Matrix<REAL_TYPE, 3> resultMatrix;
+
+  resultMatrix.m[0][0] = RealCosine(angle);
+  resultMatrix.m[0][1] = -RealSine(angle);
+  resultMatrix.m[0][2] = 0;
+
+  resultMatrix.m[1][0] = RealSine(angle);
+  resultMatrix.m[1][1] = RealCosine(angle);
+  resultMatrix.m[1][2] = 0;
+
+  resultMatrix.m[2][0] = 0;
+  resultMatrix.m[2][1] = 0;
+  resultMatrix.m[2][2] = 1;
+
+  return resultMatrix;
+}
+
 template<typename Real>
 Vector3_T<Real> operator*(Real scalar, const Vector3_T<Real>& vec)
 {
@@ -141,6 +378,22 @@ class Plane_T
    Vector3_T<Real> color;
    Vector3_T<Real> coeffs;
 
+};
+
+template <typename Real>
+class Line_T{
+ public:
+  Line_T() = default;
+  Line_T(const Vector3_T<Real>& origin,
+         const Vector3_T<Real>& end,
+         const Vector3_T<Real>& color)
+    : origin(origin), end(end), color(color)
+  {}
+
+ public:
+  Vector3_T<Real> origin;
+  Vector3_T<Real> end;
+  Vector3_T<Real> color;
 };
 
 template<typename Real>
@@ -289,18 +542,6 @@ class Light_T
   Real ambientIntensity;
 };
 
-
-
-#define PRECISION_TYPE 0
-
-#if PRECISION_TYPE == 0
-  #define REAL_TYPE float
-  #define EPSILON 1e-4  
-#else 
-  #define REAL_TYPE double
-  #define EPSILON 1e-8  
-#endif
-
 using Vector3 = Vector3_T<REAL_TYPE>;
 using Color = Vector3_T<REAL_TYPE>;
 using Ray = Ray_T<REAL_TYPE>;
@@ -308,4 +549,5 @@ using Plane = Plane_T<REAL_TYPE>;
 using Light = Light_T<REAL_TYPE>;
 using Triangle = Triangle_T<REAL_TYPE>;
 using Sphere = Sphere_T<REAL_TYPE>;
-
+using Line = Line_T<REAL_TYPE>;
+using Matrix3x3 = Matrix<REAL_TYPE, 3>;

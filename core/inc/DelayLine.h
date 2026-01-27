@@ -20,7 +20,7 @@ public:
     return m_buffer;
   }
 
-  private:
+  
   int m_writePos;
   float m_currentDelayTime = 1.0f;
   Vector<float> m_buffer;

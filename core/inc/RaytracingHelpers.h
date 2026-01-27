@@ -9,7 +9,7 @@ namespace ShapeType
     kSphere,
     kPlane,
     kTriangle,
-    kPolygon
+    kLineSegment
   };
 }
 
@@ -17,6 +17,8 @@ struct AudioProperties
 {
   REAL_TYPE reflectionCoeff{ 0.5 };
 };
+
+
 
 struct IntersectionInfo
 {
@@ -30,6 +32,23 @@ struct IntersectionInfo
   ShapeType::E type{ ShapeType::kEmpty };
   AudioProperties audioProperties;
 
+};
+
+template <typename Real>
+struct Solution
+{
+  Solution() = default;
+  Solution(int index, 
+           Real smallestSolution, 
+           ShapeType::E shapeType)
+    : index(index), 
+      smallestSolution(smallestSolution),
+      shapeType(shapeType)
+  {}
+
+  int index {0};
+  Real smallestSolution {0};
+  ShapeType::E shapeType { ShapeType::kEmpty};
 };
 
 bool RayTriangleIntersection(const Ray& ray,

@@ -5,6 +5,17 @@
 #include <map>
 #include <vector>
 #include <random>
+#include <list>
+
+#define PRECISION_TYPE 0
+
+#if PRECISION_TYPE == 0
+#define REAL_TYPE float
+#define EPSILON 1e-4  
+#else 
+#define REAL_TYPE double
+#define EPSILON 1e-8  
+#endif
 
 #define NODISCARD_MSG "This value is not being used!"
 #define NODISCARD [[nodiscard(NODISCARD_MSG)]]
@@ -22,6 +33,13 @@ class RandomEngine
     return distribution(mt);
 
   }
+
+	Real getRangedNumber(Real min, Real max)
+	{
+		std::uniform_real_distribution<Real> distribution{ min, max };
+
+		return distribution(mt);
+	}
 
   std::mt19937 mt{ std::random_device{}() };
 
@@ -53,6 +71,9 @@ using Array = std::array<T, N>;
 
 template<class T>
 using Vector = std::vector<T>;
+
+template<class T>
+using List = std::list<T>;
 
 template<typename Num>
 Num clamp(Num value, Num min, Num max)

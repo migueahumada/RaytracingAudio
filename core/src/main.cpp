@@ -4,6 +4,7 @@
 #include "RaytracingHelpers.h"
 #include "Scene.h"
 #include "Viewport.h"
+#include "DelayLine.h"
 
 //#include "ComputeAPI.h"
 
@@ -49,10 +50,13 @@ static constexpr REAL_TYPE kA = (REAL_TYPE)0.5;
 static constexpr REAL_TYPE kD = (REAL_TYPE)0.4;
 static constexpr REAL_TYPE kS = (REAL_TYPE)0.7;
 
+
+
 IntersectionInfo findClosestIntersection(const Ray& ray,
                                         const Vector<Sphere>& spheres,
                                         const Vector<Plane>& planes,
-                                        const Vector<Triangle>& triangles)
+                                        const Vector<Triangle>& triangles,
+                                        const Vector<Line>& lines)
 {
   IntersectionInfo intersectionInfo;
 
@@ -113,6 +117,59 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
     closestSphereIndex = (int)index[j];
     smallestSolutionSphere = solutions[j];
   }
+
+  //---------------Line----------------------
+  /*
+    v1 = o - a
+    v2 = b - a
+    v3 = (-dy,dx)
+    
+  */
+  int closestLineIndex = 0;
+  REAL_TYPE smallestSolutionLine = 50000;
+
+  count = lines.size();
+  solutions.clear();
+  index.clear();
+
+
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    
+    const Vector3 v1 = ray.position - lines[i].origin;
+    const Vector3 v2 = lines[i].end - lines[i].origin;
+    const Vector3 v3 = { -ray.direction.y ,ray.direction.x };
+    
+
+
+    REAL_TYPE t1 = (v2.cross(v1)).length() / v2.dot(v3);
+    REAL_TYPE t2 = v1.dot(v3) / v2.dot(v3);
+
+    if (t1 >= 0.0f && t2 >= 0.0f && t2 <= 1.0f)
+    {
+      solutions.push_back(t2);
+      index.push_back(i);
+    }
+  }
+
+  if (!solutions.empty())
+  {
+    REAL_TYPE tmp = solutions[0];
+    int j = 0;
+    for (size_t i = 0; i < solutions.size(); ++i)
+    {
+      if (solutions[i] < tmp)
+      {
+        tmp = solutions[i];
+        j = (int)i;
+      }
+    }
+
+    closestLineIndex = (int)index[j];
+    smallestSolutionLine = solutions[j];
+  }
+
 
   //---------------Plane-------------
   int closestPlaneIndex = 0;
@@ -189,38 +246,65 @@ IntersectionInfo findClosestIntersection(const Ray& ray,
     smallestSolutionTriangle = solutions[j];
   }
 
-  //------------DepthTestings----------
-  if (smallestSolutionPlane < smallestSolutionSphere && smallestSolutionPlane < smallestSolutionTriangle)
+  auto comp = [](const Solution<REAL_TYPE>& a, const Solution<REAL_TYPE>& b)
   {
-    intersectionInfo.point = ray.where(smallestSolutionPlane);
-    intersectionInfo.normal = planes[closestPlaneIndex].normal;
-    intersectionInfo.color = planes[closestPlaneIndex].color;
-    intersectionInfo.kA = planes[closestPlaneIndex].coeffs.x;
-    intersectionInfo.kD = planes[closestPlaneIndex].coeffs.y;
-    intersectionInfo.kS = planes[closestPlaneIndex].coeffs.z;
-    intersectionInfo.type = ShapeType::kPlane;
-  }
-  else if(smallestSolutionSphere < smallestSolutionPlane && smallestSolutionSphere < smallestSolutionTriangle)
+      return a.smallestSolution < b.smallestSolution;
+  };
+
+  Vector<Solution<REAL_TYPE>> vSolutions;
+
+  vSolutions.emplace_back(closestPlaneIndex, smallestSolutionPlane, ShapeType::kPlane);
+  vSolutions.emplace_back(closestSphereIndex, smallestSolutionSphere, ShapeType::kSphere);
+  vSolutions.emplace_back(closestTriangleIndex, smallestSolutionTriangle, ShapeType::kTriangle);
+
+  std::sort(vSolutions.begin(), vSolutions.end(), [](const Solution<REAL_TYPE>& a, const Solution<REAL_TYPE>& b)
   {
-    intersectionInfo.point = ray.where(smallestSolutionSphere);
-    intersectionInfo.normal = (intersectionInfo.point - spheres[closestSphereIndex].center).getNormalized();
-    intersectionInfo.color = spheres[closestSphereIndex].color;
-    intersectionInfo.kA = spheres[closestSphereIndex].coeffs.x;
-    intersectionInfo.kD = spheres[closestSphereIndex].coeffs.y;
-    intersectionInfo.kS = spheres[closestSphereIndex].coeffs.z;
-    intersectionInfo.type = ShapeType::kSphere;
-  }
-  else if (smallestSolutionTriangle < smallestSolutionPlane && smallestSolutionTriangle < smallestSolutionSphere)
+    return a.smallestSolution < b.smallestSolution;
+  });
+
+  Solution bestSolution = vSolutions[0];
+
+  switch (bestSolution.shapeType)
   {
-    intersectionInfo.point = ray.where(smallestSolutionTriangle);
-    intersectionInfo.normal = triangles[closestTriangleIndex].normal;
-    intersectionInfo.color = triangles[closestTriangleIndex].color;
-    intersectionInfo.kA = triangles[closestTriangleIndex].coeffs.x;
-    intersectionInfo.kD = triangles[closestTriangleIndex].coeffs.y;
-    intersectionInfo.kS = triangles[closestTriangleIndex].coeffs.z;
-    intersectionInfo.type = ShapeType::kTriangle;
+    case ShapeType::kSphere:
+      intersectionInfo.point = ray.where(bestSolution.smallestSolution);
+      intersectionInfo.normal = (intersectionInfo.point - spheres[bestSolution.index].center).getNormalized();
+      intersectionInfo.color = spheres[bestSolution.index].color;
+      intersectionInfo.kA = spheres[bestSolution.index].coeffs.x;
+      intersectionInfo.kD = spheres[bestSolution.index].coeffs.y;
+      intersectionInfo.kS = spheres[bestSolution.index].coeffs.z;
+      intersectionInfo.type = ShapeType::kSphere;
+      break;
+    case ShapeType::kPlane:
+      intersectionInfo.point = ray.where(bestSolution.smallestSolution);
+      intersectionInfo.normal = planes[bestSolution.index].normal;
+      intersectionInfo.color = planes[bestSolution.index].color;
+      intersectionInfo.kA = planes[bestSolution.index].coeffs.x;
+      intersectionInfo.kD = planes[bestSolution.index].coeffs.y;
+      intersectionInfo.kS = planes[bestSolution.index].coeffs.z;
+      intersectionInfo.type = ShapeType::kPlane;
+      break;
+    case ShapeType::kTriangle:
+      intersectionInfo.point = ray.where(bestSolution.smallestSolution);
+      intersectionInfo.normal = triangles[bestSolution.index].normal;
+      intersectionInfo.color = triangles[bestSolution.index].color;
+      intersectionInfo.kA = triangles[bestSolution.index].coeffs.x;
+      intersectionInfo.kD = triangles[bestSolution.index].coeffs.y;
+      intersectionInfo.kS = triangles[bestSolution.index].coeffs.z;
+      intersectionInfo.type = ShapeType::kTriangle;
+      break;
+    case ShapeType::kLineSegment:
+      intersectionInfo.point = ray.where(bestSolution.smallestSolution);
+      intersectionInfo.normal = (intersectionInfo.point - lines[bestSolution.index].origin).getNormalized();
+      intersectionInfo.color = lines[bestSolution.index].color;
+      intersectionInfo.kA = 0.5;
+      intersectionInfo.kD = 0.5;
+      intersectionInfo.kS = 0.5;
+      intersectionInfo.type = ShapeType::kLineSegment;
+      break;
+  default:
+    break;
   }
-  
 
 
   return intersectionInfo;
@@ -266,28 +350,23 @@ Color findColor(const Ray& ray,
                 const Vector<Plane>& planes,
                 const Vector<Triangle>& triangles,
                 const Light& light,
-                AudioBuffer& audioBuffer,
+                const Vector<Line>& lines,
                 int maxDepth = 3)
 {
   Color colorResult(0, 0, 0);
   Color noIntersection(0, 0, 0);
   int depth = 0;
   Ray currentRay = ray;
-  
+
   while (depth < maxDepth)
   {
-    IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes,triangles);
+    IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes,triangles,lines);
 
     if (intersectionInfo.type != ShapeType::kEmpty)
     {
       depth = depth + 1;
 
       colorResult = colorResult + calculateColor(intersectionInfo, light, spheres, planes,triangles, currentRay.direction);
-      
-      float delayTimeInMS = ((intersectionInfo.point - currentRay.position).length() / SPEED_OF_SOUND) * 0.001f;
-      
-      //sound = direct + sumOfReflectedSound (global sound)
-      //soundResult = soundResult + calculatSound();
 
       Vector3 intersectionNormal = intersectionInfo.normal;
       currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
@@ -295,6 +374,7 @@ Color findColor(const Ray& ray,
     }
     else
     {
+      
       break;
     }
 
@@ -309,8 +389,31 @@ Color findColor(const Ray& ray,
     return noIntersection;
   }
   
-
   return colorResult;
+}
+
+float findTimeDelay(const Ray& ray,
+                    const Vector<Sphere>& spheres,
+                    const Vector<Plane>& planes,
+                    const Vector<Triangle>& triangles)
+{
+  float timeDelay = 0.0f;
+  Ray currentRay = ray;
+
+  Vector<Line> lines;
+  IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes, triangles, lines);
+
+  if (intersectionInfo.type != ShapeType::kEmpty)
+  {
+
+    timeDelay = ((intersectionInfo.point - currentRay.position).length() / SPEED_OF_SOUND) * 0.001f;
+
+    Vector3 intersectionNormal = intersectionInfo.normal;
+    currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
+    currentRay.position = intersectionInfo.point;
+  }
+  
+  return timeDelay;
 }
 
 int main()
@@ -324,14 +427,41 @@ int main()
   Complex<int> comp(3,4);
 */
 
+//RandomEngine
+  RandomEngine<REAL_TYPE> randomEngine;
+  
   //Spheres
   Vector<Sphere> spheres;
 
-  spheres.emplace_back( Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
-  spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
+  //spheres.emplace_back( Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
+  //spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
+
+  Vector3 soundPosition(-65, 25, 230) ;
+  Vector3 soundDirection(0,0,1);
+  spheres.emplace_back(soundPosition, 5, Vector3(255, 0, 255), kA, kD, kS);
+
+  size_t soundRaysCount = 250;
+
+  REAL_TYPE deg = ToDegrees(1.0f);
+  REAL_TYPE rad = ToRadians(45.0);
+
+  REAL_TYPE ratio = 0;
+  for (size_t i = 0; i < soundRaysCount; ++i )
+  { 
+
+    Ray ray(soundPosition,soundDirection);
+
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)),AXIS::kX);
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)), AXIS::kY);
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)), AXIS::kZ);
+    
+    spheres.emplace_back(ray.where(60.0), 2, Vector3(255, 0, 0), kA, kD, kS);
+
+    
+  }
 
   //Planes (Room)
   Vector3 norm1(-5, 0, -4), point1(1300, 500, 500), planeColor(230, 182, 200);
@@ -352,12 +482,10 @@ int main()
     wall3
   };
 
-  //Triangles
-  Vector3 v0(30, 23, 100);
-  Vector3 v1(20, 12, 100);
-  Vector3 v2(13, 26, 100);
-  
-  Triangle triangle(v0,v1,v2, Vector3(0,255,255),kA,kD,kS);
+  Triangle triangle(Vector3(30, 23, 100), 
+                    Vector3(20, 12, 100), 
+                    Vector3(13, 26, 100), 
+                    Vector3(0,255,255),kA,kD,kS);
 
   Vector<Triangle> triangles;
   triangles.push_back(triangle);
@@ -385,22 +513,25 @@ int main()
 
   // Loop over shapes
   
-  scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
+  //scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
 
   //Image creation
   Image image;
   image.create(vp.m_width, vp.m_height,32);
 
-  //RandomEngine
-  RandomEngine<REAL_TYPE> randomEngine;
+  
 
   //AUDIO HERE!
   Audio raytracedAudio;
-  raytracedAudio.decode("../rsc/out2.wav");
+  raytracedAudio.decode("../rsc/IR.wav");
   AudioBuffer raytracedAudioBuffer(raytracedAudio);
 
   /*############TESTING AREA##################*/
 
+  Vector<Line> lines;
+  lines.emplace_back(Vector3(0, 0, 0), Vector3(-36, -28, 220),Vector3(255,0,0));
+
+  Vector<float> vTimeDelays;
 
   //Image processing
   for (int y = 0; y < vp.m_height; ++y)
@@ -408,6 +539,7 @@ int main()
     for (int x = 0; x < vp.m_width; ++x)
     {
       Color pixelColor;
+      float timeDelay = 0.0f;
 
       for (size_t j = 1; j <= AASamples; ++j)
       {
@@ -418,7 +550,7 @@ int main()
         Vector3 pixel = vp.m_upperLeftCorner + tmpPixel;
 
         Ray currentRay(scene.m_eye, pixel - scene.m_eye);
-        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, raytracedAudioBuffer, 1);
+        pixelColor = pixelColor + findColor(currentRay, scene.m_spheres, scene.m_planes, scene.m_triangles, scene.m_light, lines, 1);
         
       }
       Color_BMP colorbmp;
@@ -430,10 +562,24 @@ int main()
       image.setPixel(x, y, colorbmp);
     }
   }
+
+
   
+  //64 rayos - 
+  //Basado en el cálculo tnego el 
+  //Atenuación
+  //Rayos tirados en múltiples direcciones. Montecarlo.
+  
+  /*DelayLine delayLine(raytracedAudioBuffer.m_samples.size());
+  for(const auto& time : vTimeDelays)
+  {
+    
+    delayLine.Process(raytracedAudioBuffer, time);
+  }*/
+
   Audio outputAudioRaytraced;
   outputAudioRaytraced.create(raytracedAudioBuffer);
-  outputAudioRaytraced.encode("../rsc/FINALRAYTRACEDAUDIO.wav");
+  outputAudioRaytraced.encode("../rsc/RAYTRACEDAUDIOFINAL.wav");
   image.encode(IMG_OUTPATH);
 
   return 0;

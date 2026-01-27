@@ -26,7 +26,14 @@
 * - Sample -> the normalization of the data.
 * - Frame -> a container of samples which size is the number of channels.
 * 
-*
+*         Pitch = 8
+*         
+*          --- --- --- --- --- --- --- ---  
+* sample->| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+*          --- --- --- --- --- --- --- ---  
+*          --- --- --- --- --- --- --- --- 
+*         | 8 | 9 | 10| 11| 12| 13| 14| 15|
+*          --- --- --- --- --- --- --- --- 
 * Formulas:
 *  Duration = channels * sampleRate * bitdepth
 *

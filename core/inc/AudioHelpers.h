@@ -1,6 +1,7 @@
 #pragma once
 #include "Prerequisites.h"
 #include "MathObjects.h"
+#include <cassert>
 
 namespace FilterType
 {
@@ -76,41 +77,83 @@ class SoundSource
 {
   SoundSource(const Vector3& position) 
   {
-    m_sphere.center = position;
-    m_sphere.color = {255.0,0,0};
-    m_sphere.coeffs = {0.9,0,0};
-    m_sphere.m_radius = 20;
+    
   };
 
   Sphere m_sphere;
 };
 
-template<typename T>
-class CircularBuffer
+
+
+class RingBuffer
 {
 public:
-  explicit CircularBuffer(size_t size)
-    : m_readIndex(0),
-    m_writeIndex(0)
+  explicit RingBuffer(int samples, int frames)
+    : m_samples(samples),
+      m_bufferSize(samples * frames),
+      m_maxFrames(frames),
+      m_numFrames(frames),
+      m_readIndex(0),
+      m_writeIndex(0)
   {
-    assert(size > 0 && "size should be greater than zero");
-    assert((size & (size - 1)) == 0 && "size should be a power of two");
-    m_buffer.resize(size);
+    assert(samples > 0 && "Rinbuffer size should be greater than zero");
+    assert((samples & (samples - 1)) == 0 && "Rinbuffer size should be a power of two");
+    m_buffer = new float[m_bufferSize];
+    memset(*&m_buffer, 0, m_bufferSize * sizeof(float));
   }
 
-  void write(const T& value)
+  ~RingBuffer()
   {
-    m_buffer[m_writeIndex] = value;
-    m_writeIndex = (m_writeIndex + 1) % m_buffer.size();
+    if (m_buffer)
+    {
+      delete[] m_buffer;
+      m_buffer = nullptr;
+    }
   }
 
-  T read()
+  bool canWrite()
   {
-    m_buffer[m_read]
+    return m_numFrames != m_maxFrames;
+  }
+  bool canRead()
+  {
+    return m_numFrames != 0;
+  }
+
+  float* ptrWrite()
+  {
+    return m_buffer + (m_writeIndex * m_samples);
+  }
+
+  float* ptrRead()
+  {
+    return *&m_buffer + (m_readIndex + m_samples);
+  }
+
+  void write()
+  {
+    m_writeIndex = (m_writeIndex + 1) % m_maxFrames;
+    m_numFrames += 1;
+  }
+
+  void read()
+  {
+    m_readIndex = (m_readIndex + 1) % m_maxFrames;
+    m_numFrames -=1;
+  }
+
+  size_t getBufferSize()
+  {
+    return m_bufferSize;
   }
 
 private:
-  Vector<T> m_buffer;
+  size_t m_bufferSize;
+  int m_samples;
+  int m_maxFrames;
+  int m_numFrames;
   int m_readIndex;
   int m_writeIndex;
+  float* m_buffer;
 };
+
