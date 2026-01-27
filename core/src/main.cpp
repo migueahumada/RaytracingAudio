@@ -5,7 +5,6 @@
 #include "Scene.h"
 #include "Viewport.h"
 #include "DelayLine.h"
-
 //#include "ComputeAPI.h"
 
 #ifdef _WIN32
@@ -19,8 +18,6 @@
 
 #ifdef __APPLE__
   #define INPATH "../../rsc/SoundFile_01.wav"
-  #define OUTPATH "../../rsc/out2.wav"
-  #define OUTPATH2 "../../rsc/out3.wav"
 
   #define IMG_INPATH "../../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../../rsc/OutImage.bmp"
@@ -392,28 +389,49 @@ Color findColor(const Ray& ray,
   return colorResult;
 }
 
+
 float findTimeDelay(const Ray& ray,
                     const Vector<Sphere>& spheres,
                     const Vector<Plane>& planes,
-                    const Vector<Triangle>& triangles)
+                    const Vector<Triangle>& triangles,
+                    const Vector<Line>& lines,
+                    int maxDepth = 3)
 {
-  float timeDelay = 0.0f;
+  int depth = 0;
   Ray currentRay = ray;
+  float currentTimeDelay = 0.0f;
 
-  Vector<Line> lines;
-  IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes, triangles, lines);
-
-  if (intersectionInfo.type != ShapeType::kEmpty)
+  while (depth < maxDepth)
   {
+    IntersectionInfo intersectionInfo = findClosestIntersection(currentRay, spheres, planes, triangles, lines);
 
-    timeDelay = ((intersectionInfo.point - currentRay.position).length() / SPEED_OF_SOUND) * 0.001f;
+    if (intersectionInfo.type != ShapeType::kEmpty)
+    {
+      depth = depth + 1;
 
-    Vector3 intersectionNormal = intersectionInfo.normal;
-    currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
-    currentRay.position = intersectionInfo.point;
+      currentTimeDelay += ((intersectionInfo.point - currentRay.position).length() / SPEED_OF_SOUND);
+
+      Vector3 intersectionNormal = intersectionInfo.normal;
+      currentRay.direction = currentRay.direction - 2 * (currentRay.direction.dot(intersectionNormal)) * intersectionNormal;
+      currentRay.position = intersectionInfo.point;
+    }
+    else
+    {
+      break;
+    }
   }
-  
-  return timeDelay;
+
+  //if (depth != 0)
+  //{
+  //  return currentTimeDelay / (REAL_TYPE)depth;
+  //}
+  //else
+  //{
+  //  return 0.0f;
+  //}
+
+  return currentTimeDelay;
+
 }
 
 int main()
@@ -433,39 +451,9 @@ int main()
   //Spheres
   Vector<Sphere> spheres;
 
-  //spheres.emplace_back( Vector3(-36, -28, 220), 10, Vector3(139, 0, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(-55, -23, 230), 35, Vector3(255, 0, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(0, 0, 107), 10, Vector3(255, 69, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(13, -11, 235), 10, Vector3(255, 215, 0), kA, kD, kS);
-  //spheres.emplace_back(Vector3(-151, -27, 220), 14, Vector3(128, 128, 0), kA, kD, kS);
-
-  Vector3 soundPosition(-65, 25, 230) ;
-  Vector3 soundDirection(0,0,1);
-  spheres.emplace_back(soundPosition, 5, Vector3(255, 0, 255), kA, kD, kS);
-
-  size_t soundRaysCount = 250;
-
-  REAL_TYPE deg = ToDegrees(1.0f);
-  REAL_TYPE rad = ToRadians(45.0);
-
-  REAL_TYPE ratio = 0;
-  for (size_t i = 0; i < soundRaysCount; ++i )
-  { 
-
-    Ray ray(soundPosition,soundDirection);
-
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)),AXIS::kX);
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)), AXIS::kY);
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0,360)), AXIS::kZ);
-    
-    spheres.emplace_back(ray.where(60.0), 2, Vector3(255, 0, 0), kA, kD, kS);
-
-    
-  }
-
   //Planes (Room)
-  Vector3 norm1(-5, 0, -4), point1(1300, 500, 500), planeColor(230, 182, 200);
-  Vector3 norm2(5, 0, -4), point2(-1000, 500, 500);
+  Vector3 norm1(-5, 0, -4), point1(300, 500, 500), planeColor(230, 182, 200);
+  Vector3 norm2(5, 0, -4), point2(-500, 500, 500);
   Vector3 norm3(0, 0, 1), point3(0, 0, 0);
   Vector3 normal(0, 5, -1), point(0, -60, 120);
 
@@ -500,8 +488,44 @@ int main()
   //Viewport
   Viewport vp(width, height);
 
+  Vector<Line> lines;
+  lines.emplace_back(Vector3(0, 0, 0), Vector3(-36, -28, 220), Vector3(255, 0, 0));
+
+  
+  
   //Scene
   Scene scene(light, planes, spheres, triangles, eye);
+
+  //AudioSource
+  Vector3 soundPosition(-65, 30, 330);
+  Vector3 soundDirection(0, 1, 0);
+  scene.m_spheres.emplace_back(soundPosition, 10, Vector3(255, 0, 255), kA, kD, kS);
+
+  //Audio Processing
+  Audio raytracedAudio;
+  raytracedAudio.decode("../rsc/Sound.wav");
+  AudioBuffer raytracedAudioBuffer(raytracedAudio);
+
+  size_t soundRaysCount = 4;
+  Vector<float> vTimeDelays;
+
+  for (size_t i = 0; i < soundRaysCount; ++i)
+  {
+
+    Ray ray(soundPosition, soundDirection);
+
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kX);
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kY);
+    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kZ);
+
+    scene.m_spheres.emplace_back(ray.where(30.0f), 2, Vector3(255.0f, 0, 0), kA, kD, kS);
+
+    float timeDelay = findTimeDelay(ray, scene.m_spheres, scene.m_planes, scene.m_triangles, lines, 3);
+
+    vTimeDelays.push_back(timeDelay);
+  }
+
+  
   
   tinyobj::attrib_t attrib;
   Vector<tinyobj::shape_t> shapes;
@@ -511,29 +535,17 @@ int main()
   
   tinyobj::LoadObj(&attrib, &shapes, nullptr, &err, fileName.c_str(), nullptr, true);
 
-  // Loop over shapes
   
   //scene.AddModelTriangles(attrib,shapes,kA,kD,kS);
 
-  //Image creation
-  Image image;
-  image.create(vp.m_width, vp.m_height,32);
+  
 
   
 
-  //AUDIO HERE!
-  Audio raytracedAudio;
-  raytracedAudio.decode("../rsc/IR.wav");
-  AudioBuffer raytracedAudioBuffer(raytracedAudio);
-
-  /*############TESTING AREA##################*/
-
-  Vector<Line> lines;
-  lines.emplace_back(Vector3(0, 0, 0), Vector3(-36, -28, 220),Vector3(255,0,0));
-
-  Vector<float> vTimeDelays;
-
   //Image processing
+  Image image;
+  image.create(vp.m_width, vp.m_height, 32);
+
   for (int y = 0; y < vp.m_height; ++y)
   {
     for (int x = 0; x < vp.m_width; ++x)
@@ -562,25 +574,28 @@ int main()
       image.setPixel(x, y, colorbmp);
     }
   }
+  image.encode(IMG_OUTPATH);
 
+  AudioBuffer result = raytracedAudioBuffer; 
 
-  
-  //64 rayos - 
-  //Basado en el cálculo tnego el 
-  //Atenuación
-  //Rayos tirados en múltiples direcciones. Montecarlo.
-  
-  /*DelayLine delayLine(raytracedAudioBuffer.m_samples.size());
-  for(const auto& time : vTimeDelays)
+  for (auto time : vTimeDelays)
   {
-    
-    delayLine.Process(raytracedAudioBuffer, time);
-  }*/
+    DelayLine delayLine(raytracedAudioBuffer.m_samples.size());
+
+    AudioBuffer delayed =
+      delayLine.GetProcessedBuffer(raytracedAudioBuffer, time * 20.0f);
+
+    delayed.scale(0.2f);
+
+    result = result + delayed;
+  }
+
+  raytracedAudioBuffer = result;
 
   Audio outputAudioRaytraced;
   outputAudioRaytraced.create(raytracedAudioBuffer);
-  outputAudioRaytraced.encode("../rsc/RAYTRACEDAUDIOFINAL.wav");
-  image.encode(IMG_OUTPATH);
+  outputAudioRaytraced.encode("../rsc/OutputSoundFile.wav");
+  
 
   return 0;
 }

@@ -17,33 +17,34 @@ AudioBuffer::AudioBuffer(Audio& audio)
 
 AudioBuffer AudioBuffer::operator+(const AudioBuffer& other)
 {
-  AudioBuffer tmpBuffer = other;
-  AudioBuffer thisBuffer = *this;
+  AudioBuffer otherBuffer = other;
   AudioBuffer resultBuffer;
 
-  if (this->m_samples.size() > other.m_samples.size())
+  if (m_samples.size() > otherBuffer.m_samples.size())
   {
-    tmpBuffer.m_samples.resize(thisBuffer.m_samples.size());
-    resultBuffer.m_samples.resize(thisBuffer.m_samples.size());
-    resultBuffer.m_channels = thisBuffer.m_channels;
-    resultBuffer.m_sampleRate = thisBuffer.m_sampleRate;
-    resultBuffer.m_bitDepth = thisBuffer.m_bitDepth;
+    otherBuffer.m_samples.resize(m_samples.size());
+    resultBuffer.m_samples.resize(m_samples.size());
+    resultBuffer.m_channels = m_channels;
+    resultBuffer.m_sampleRate = m_sampleRate;
+    resultBuffer.m_bitDepth = m_bitDepth;
   }
   else
   {
-    thisBuffer.m_samples.resize(tmpBuffer.m_samples.size());
-    resultBuffer.m_samples.resize(tmpBuffer.m_samples.size());
-    resultBuffer.m_channels = tmpBuffer.m_channels;
-    resultBuffer.m_sampleRate = tmpBuffer.m_sampleRate;
-    resultBuffer.m_bitDepth = tmpBuffer.m_bitDepth;
+    m_samples.resize(other.m_samples.size());
+    resultBuffer.m_samples.resize(other.m_samples.size());
+    resultBuffer.m_channels = other.m_channels;
+    resultBuffer.m_sampleRate = other.m_sampleRate;
+    resultBuffer.m_bitDepth = other.m_bitDepth;
   }
 
-  for (size_t i = 0; i < tmpBuffer.m_samples.size(); i++)
+  for (size_t i = 0; i < resultBuffer.m_samples.size(); ++i)
   {
-    resultBuffer.m_samples[i] = tmpBuffer.m_samples[i] + thisBuffer.m_samples[i];
+    float resultSample = other.m_samples[i] + m_samples[i];
+    resultBuffer.m_samples[i] = clamp(resultSample, -1.0f, 1.0f);
   }
 
   return resultBuffer;
+  
 }
 
 
@@ -78,13 +79,16 @@ AudioBuffer AudioBuffer::sum(const AudioBuffer& other)
     resultBuffer.m_bitDepth = tmpBuffer.m_bitDepth;
   }
 
-  for (size_t i = 0; i < tmpBuffer.m_samples.size(); i++)
+  for (size_t i = 0; i < tmpBuffer.m_samples.size(); ++i)
   {
-    resultBuffer.m_samples[i] = tmpBuffer.m_samples[i] + thisBuffer.m_samples[i];
+    float resultSample = tmpBuffer.m_samples[i] + thisBuffer.m_samples[i];
+    resultBuffer.m_samples[i] = clamp(resultSample, -1.0f, 1.0f);
   }
 
   return resultBuffer;
 }
+
+
 
 /**
 * There's a relationship between the time, the sampleRate and the samples
@@ -132,3 +136,12 @@ void AudioBuffer::setTimeOffset(float timeInMilliseconds)
   m_samples = tmpBuffer;
   
 }
+
+void AudioBuffer::setZero()
+{
+  for (auto& samples : m_samples)
+  {
+    samples = 0.0f;
+  }
+}
+
