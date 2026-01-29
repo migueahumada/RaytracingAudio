@@ -146,7 +146,8 @@ class Audio
   
   void processAudio();
 
-  inline NODISCARD float getVolume() const
+  NODISCARD
+  inline float getVolume() const
   {
     return m_volume;
   }
