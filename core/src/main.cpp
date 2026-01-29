@@ -8,27 +8,24 @@
 //#include "ComputeAPI.h"
 
 #ifdef _WIN32
-  #define INPATH "../rsc/SoundFile_01.wav"
+  #define AUDIO_INPATH "../rsc/Sound.wav"
   #define OUTPATH "../rsc/OutputSound.wav"
-  #define OUTPATH2 "../rsc/out3.wav"
-  #define IMG_INPATH "../rsc/TestImage.bmp"
   #define IMG_OUTPATH "../rsc/OutImage.bmp"
   #define MODEL_INPATH "../rsc/chango.obj"
 #endif
 
 #ifdef __APPLE__
-  #define INPATH "../../rsc/SoundFile_01.wav"
-
-  #define IMG_INPATH "../../rsc/TestImage.bmp"
-  #define IMG_OUTPATH "../../rsc/OutImage.bmp"
-
-  #define MODEL_PATH "../../rsc/stanford-bunny.obj"
+  #define AUDIO_INPATH  "../../rsc/Sound.wav"
+  #define AUDIO_OUTPATH "../../rsc/OutputSound.wav"
+  #define IMG_OUTPATH   "../../rsc/OutImage.bmp"
+  #define MODEL_INPATH  "../../rsc/chango.obj"
 #endif
 
 #ifdef __UNIX__
-  #define INPATH "../../rsc/SoundFile_01.wav"
-  #define OUTPATH "../../rsc/out2.wav"
-  #define OUTPATH2  "../../rsc/out3.wav"
+  #define AUDIO_INPATH  "../../rsc/Sound.wav"
+  #define AUDIO_OUTPATH "../../rsc/OutputSound.wav"
+  #define IMG_OUTPATH   "../../rsc/OutImage.bmp"
+  #define MODEL_INPATH  "../../rsc/chango.obj"
 #endif                                    
 
 // TODO:
@@ -503,7 +500,7 @@ int main()
 
   //Audio Processing
   Audio raytracedAudio;
-  raytracedAudio.decode("../rsc/Sound.wav");
+  raytracedAudio.decode(AUDIO_INPATH);
   AudioBuffer raytracedAudioBuffer(raytracedAudio);
 
   size_t soundRaysCount = 4;
@@ -594,7 +591,7 @@ int main()
 
   Audio outputAudioRaytraced;
   outputAudioRaytraced.create(raytracedAudioBuffer);
-  outputAudioRaytraced.encode("../rsc/OutputSoundFile.wav");
+  outputAudioRaytraced.encode(AUDIO_OUTPATH);
   
 
   return 0;

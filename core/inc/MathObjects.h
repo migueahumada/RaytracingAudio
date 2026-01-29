@@ -326,20 +326,20 @@ Vector3_T<Real> operator/(Real scalar, const Vector3_T<Real>& vec)
 }
 
 template <typename Real>
-Vector3_T<Real> getRotated(float angle, AXIS::E axis)
+Vector3_T<Real> getRotated(const Vector3_T<Real>& vector, float angle, AXIS::E axis)
 {
   Vector3_T<Real> result;
 
   switch (axis)
   {
   case AXIS::kX:
-    result = GetXRotationMatrix(angle) * (*this);
+    result = GetXRotationMatrix(angle) * vector;
     break;
   case AXIS::kY:
-    result = GetYRotationMatrix(angle) * (*this);
+    result = GetYRotationMatrix(angle) * vector;
     break;
   case AXIS::kZ:
-    result = GetZRotationMatrix(angle) * (*this);
+    result = GetZRotationMatrix(angle) * vector;
     break;
   default:
 
