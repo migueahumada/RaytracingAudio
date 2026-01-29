@@ -3,10 +3,17 @@
 
 constexpr REAL_TYPE PI = 3.14159265;
 
-template<typename T, uint32 N>
-class Matrix;
+namespace AXIS 
+{
+  enum E {
+    kX,
+    kY,
+    kZ,
+  };
+}
 
-inline REAL_TYPE RealCosine(REAL_TYPE number)
+template<typename Real>
+static Real RealCosine(Real number)
 {
 #if PRECISION_TYPE == 0
   return std::cosf(number);
@@ -17,7 +24,8 @@ inline REAL_TYPE RealCosine(REAL_TYPE number)
 
 }
 
-inline REAL_TYPE RealSine(REAL_TYPE number)
+template<typename Real>
+static Real RealSine(Real number)
 {
 #if PRECISION_TYPE == 0
   return std::sinf(number);
@@ -27,27 +35,18 @@ inline REAL_TYPE RealSine(REAL_TYPE number)
 
 }
 
-namespace AXIS{
-  enum E {
-    kX,
-    kY,
-    kZ,
-  };
-}
-
-
 template<typename Real>
 static Real ToDegrees(Real radians)
 {
   Real degrees = radians * (Real)180 / PI;
   return degrees;
-  
+
 }
 
 template<typename Real>
 static Real ToRadians(Real degrees)
 {
-  Real radians = PI/(Real)180.0 * degrees;
+  Real radians = PI / (Real)180.0 * degrees;
   return radians;
 }
 
@@ -59,52 +58,6 @@ public:
   Vector3_T(Real _x = 0.0f, Real _y = 0.0f, Real _z = 0.0f) :
     x(_x), y(_y), z(_z) 
   {}
-
-  Vector3_T getRotated(float angle, AXIS::E axis)
-  {
-    Vector3_T<Real> result;
-
-    switch (axis)
-    {
-    case AXIS::kX:
-      result = GetXRotationMatrix(angle) * (*this);
-      break;
-    case AXIS::kY:
-      result = GetYRotationMatrix(angle) * (*this);
-      break;
-    case AXIS::kZ:
-      result = GetZRotationMatrix(angle) * (*this);
-      break;
-    default:
-      
-      break;
-    }
-    
-
-    return result;
-  }
-
-  void Rotate(float angle, AXIS::E axis)
-  {
-
-    switch (axis)
-    {
-    case AXIS::kX:
-      (*this) = GetXRotationMatrix(angle) * (*this);
-      break;
-    case AXIS::kY:
-      (*this) = GetYRotationMatrix(angle) * (*this);
-      break;
-    case AXIS::kZ:
-      (*this) = GetZRotationMatrix(angle) * (*this);
-      break;
-    default:
-
-      break;
-    }
-  }
-
-
 
   inline Vector3_T operator+(const Vector3_T& other) const
   {
@@ -335,6 +288,27 @@ static Matrix<REAL_TYPE, 3> GetZRotationMatrix(REAL_TYPE angle)
   return resultMatrix;
 }
 
+template <typename Real>
+void Rotate(Vector3_T<Real>& vector3,float angle, AXIS::E axis)
+{
+
+  switch (axis)
+  {
+  case AXIS::kX:
+    vector3 = GetXRotationMatrix(angle) * vector3;
+    break;
+  case AXIS::kY:
+    vector3 = GetYRotationMatrix(angle) * vector3;
+    break;
+  case AXIS::kZ:
+    vector3 = GetZRotationMatrix(angle) * vector3;
+    break;
+  default:
+
+    break;
+  }
+}
+
 template<typename Real>
 Vector3_T<Real> operator*(Real scalar, const Vector3_T<Real>& vec)
 {
@@ -348,6 +322,29 @@ Vector3_T<Real> operator/(Real scalar, const Vector3_T<Real>& vec)
 {
   Vector3_T<Real> result;
   result = vec / scalar;
+  return result;
+}
+
+template <typename Real>
+Vector3_T<Real> getRotated(float angle, AXIS::E axis)
+{
+  Vector3_T<Real> result;
+
+  switch (axis)
+  {
+  case AXIS::kX:
+    result = GetXRotationMatrix(angle) * (*this);
+    break;
+  case AXIS::kY:
+    result = GetYRotationMatrix(angle) * (*this);
+    break;
+  case AXIS::kZ:
+    result = GetZRotationMatrix(angle) * (*this);
+    break;
+  default:
+
+    break;
+  }
   return result;
 }
 

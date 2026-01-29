@@ -513,10 +513,10 @@ int main()
   {
 
     Ray ray(soundPosition, soundDirection);
-
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kX);
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kY);
-    ray.direction.Rotate(ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kZ);
+    
+    Rotate(ray.direction,ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kX);
+    Rotate(ray.direction, ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kY);
+    Rotate(ray.direction, ToRadians(randomEngine.getRangedNumber(0, 360)), AXIS::kZ);
 
     scene.m_spheres.emplace_back(ray.where(30.0f), 2, Vector3(255.0f, 0, 0), kA, kD, kS);
 
